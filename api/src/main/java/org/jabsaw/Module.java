@@ -7,7 +7,11 @@ import java.lang.annotation.*;
  * annotation is put on a class, which becomes the representing class of the
  * module and is used to reference the module from other modules. Inclusion and
  * exclusion patterns allow to define the classes of the module, imports and
- * exports allow to control module depenencies.
+ * exports allow to control module dependencies.
+ *
+ * <p>
+ * Nested classes are considered part of their enclosing classes.
+ * </p>
  *
  * <p>
  * <strong> Classes Accessible from within a Module </strong> <br/>

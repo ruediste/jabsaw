@@ -1,14 +1,12 @@
 package org.jabsaw.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.util.Set;
 
 import org.jabsaw.Module;
-import org.jabsaw.impl.model.ClassModel;
-import org.jabsaw.impl.model.ModuleModel;
+import org.jabsaw.impl.model.*;
 import org.junit.Test;
 import org.objectweb.asm.ClassReader;
 
@@ -117,7 +115,7 @@ public class ClassParserTest {
 
 	@TestAnnotationClass(bar = { @TestNestedAnnotationArray }, foo = @TestNestedAnnotationDirect)
 	private static class TestClass extends TestSuperClass implements
-	TestInterface {
+			TestInterface {
 
 		@TestAnnotationField
 		TestField foo;
@@ -125,7 +123,7 @@ public class ClassParserTest {
 		@TestAnnotationMethod
 		TestMethodReturn method(
 				@TestAnnotationMethodParameter TestMethodParameter p)
-						throws RuntimeException {
+				throws RuntimeException {
 			@SuppressWarnings("unused")
 			@TestLocalVariableAnnotation
 			TestLocalVariabe foo = null;
@@ -171,4 +169,24 @@ public class ClassParserTest {
 		assertTrue("expected " + element + " to be contained in " + set,
 				set.contains(element));
 	}
+
+	@Test
+	public void parseClassWithInnerClass() throws IOException {
+		ClassParser parser = new ClassParser();
+		ClassReader reader = new ClassReader(getClass().getResourceAsStream(
+				"ClassNestingTestClass.class"));
+		parser.parse(reader);
+		reader = new ClassReader(getClass().getResourceAsStream(
+				"ClassNestingTestClass$InnerClass.class"));
+		parser.parse(reader);
+		ProjectModel project = parser.getProject();
+		assertEquals(2, project.getClasses().values().size());
+		assertFalse(project
+				.getClassModel(ClassNestingTestClass.class.getName())
+				.getInnerClassNames().isEmpty());
+		project.resolveDependencies();
+		assertEquals(1, project.getClasses().values().size());
+
+	}
+
 }

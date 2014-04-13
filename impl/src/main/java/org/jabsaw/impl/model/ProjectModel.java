@@ -66,13 +66,29 @@ public class ProjectModel {
 		}
 		dependenciesResolved = true;
 
+		// resolve inner classes classes
 		for (ClassModel classModel : classes.values()) {
+			classModel.resolveInnerClasses();
+		}
+
+		for (ClassModel classModel : classes.values()) {
+			if (classModel.outerClass != null) {
+				continue;
+			}
 			classModel.resolveDependencies();
 		}
 
 		for (ModuleModel moduleModel : modules.values()) {
 			moduleModel.resolveDependencies();
 		}
+
+		// remove inner classes
+		for (ClassModel classModel : new ArrayList<>(classes.values())) {
+			if (classModel.outerClass != null) {
+				classes.remove(classModel.getQualifiedName());
+			}
+		}
+
 	}
 
 	boolean transitiveClosuresCalculated = false;

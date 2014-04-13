@@ -78,6 +78,13 @@ public class ClassParser {
 			handleTypeDescriptor(classModel, desc);
 			return new ParsingFieldVisitor(classModel);
 		}
+
+		@Override
+		public void visitInnerClass(String name, String outerName,
+				String innerName, int access) {
+			classModel.addInnerClassName(Type.getObjectType(name)
+					.getClassName());
+		}
 	}
 
 	public class ParsingFieldVisitor extends FieldVisitor {
@@ -246,7 +253,7 @@ public class ClassParser {
 		@Override
 		public void visitEnum(String name, String desc, String value) {
 			classModel
-					.addUsesClassName(Type.getObjectType(desc).getClassName());
+			.addUsesClassName(Type.getObjectType(desc).getClassName());
 		}
 	}
 
