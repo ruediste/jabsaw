@@ -1,4 +1,4 @@
-package laf.module.pattern;
+package org.jabsaw.impl.pattern;
 
 import java.util.Set;
 import java.util.regex.Pattern;

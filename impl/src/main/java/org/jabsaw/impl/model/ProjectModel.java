@@ -1,4 +1,4 @@
-package laf.module.model;
+package org.jabsaw.impl.model;
 
 import java.util.*;
 

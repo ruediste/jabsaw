@@ -1,4 +1,4 @@
-package laf.module;
+package org.jabsaw;
 
 import junit.framework.Test;
 import junit.framework.TestCase;

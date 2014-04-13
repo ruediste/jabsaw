@@ -1,10 +1,9 @@
-package laf.module;
+package org.jabsaw.impl;
 
 import java.io.*;
 
-import laf.module.model.*;
-import laf.module.pattern.ClassPattern;
-
+import org.jabsaw.impl.model.*;
+import org.jabsaw.impl.pattern.ClassPattern;
 import org.objectweb.asm.*;
 import org.objectweb.asm.signature.SignatureReader;
 import org.objectweb.asm.signature.SignatureVisitor;
@@ -50,8 +49,7 @@ public class ClassParser {
 
 		@Override
 		public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
-			if ("laf.module.LafModule"
-					.equals(Type.getType(desc).getClassName())) {
+			if ("org.jabsaw.Module".equals(Type.getType(desc).getClassName())) {
 				return new ModuleAnnotationVisitor(
 						classModel.getQualifiedName());
 			} else {
@@ -248,7 +246,7 @@ public class ClassParser {
 		@Override
 		public void visitEnum(String name, String desc, String value) {
 			classModel
-			.addUsesClassName(Type.getObjectType(desc).getClassName());
+					.addUsesClassName(Type.getObjectType(desc).getClassName());
 		}
 	}
 

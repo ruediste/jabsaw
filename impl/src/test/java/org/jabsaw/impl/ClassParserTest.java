@@ -1,4 +1,4 @@
-package laf.module;
+package org.jabsaw.impl;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -6,9 +6,9 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 import java.util.Set;
 
-import laf.module.model.ClassModel;
-import laf.module.model.ModuleModel;
-
+import org.jabsaw.Module;
+import org.jabsaw.impl.model.ClassModel;
+import org.jabsaw.impl.model.ModuleModel;
 import org.junit.Test;
 import org.objectweb.asm.ClassReader;
 
@@ -17,7 +17,7 @@ public class ClassParserTest {
 	private static class Foo {
 	}
 
-	@LafModule(exclude = Foo.class, excludePattern = "bar.*", exported = Foo.class, imported = Foo.class, include = Foo.class, includePattern = "bar.bar")
+	@Module(exclude = Foo.class, excludePattern = "bar.*", exported = Foo.class, imported = Foo.class, include = Foo.class, includePattern = "bar.bar")
 	private static class TestModule {
 
 	}

@@ -4,8 +4,8 @@
 
 	<artifactId>jabsaw-maven-plugin</artifactId>
 	<packaging>maven-plugin</packaging>
-	<name>Module Maven Plugin</name>
-	<url>http://maven.apache.org</url>
+	<name>JabSaw Maven Plugin</name>
+	<url>https://github.com/ruediste1/jabsaw</url>
 
 	<parent>
 		<groupId>org.jabsaw</groupId>
@@ -55,7 +55,7 @@
 				<artifactId>maven-plugin-plugin</artifactId>
 				<version>3.2</version>
 				<configuration>
-					<goalPrefix>module-maven-plugin</goalPrefix>
+<!-- 					<goalPrefix>module-maven-plugin</goalPrefix> -->
 					<skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
 				</configuration>
 				<executions>

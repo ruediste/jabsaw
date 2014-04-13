@@ -1,4 +1,4 @@
-package laf.module;
+package org.jabsaw;
 
 import java.lang.annotation.*;
 
@@ -70,7 +70,7 @@ import java.lang.annotation.*;
  */
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.TYPE)
-public @interface LafModule {
+public @interface Module {
 
 	/**
 	 * List of modules this module imports. These modules are not exported.

@@ -1,4 +1,4 @@
-package laf.module;
+package org.jabsaw.maven;
 
 import java.io.File;
 import java.io.IOException;
@@ -6,21 +6,30 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 
-import laf.module.model.ProjectModel;
-
 import org.apache.maven.plugin.*;
 import org.apache.maven.plugins.annotations.*;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.jabsaw.impl.ClassParser;
+import org.jabsaw.impl.model.ProjectModel;
 
+/**
+ * Checks if the constraints satisfied by the modules are respected.
+ */
 @Mojo(name = "check", defaultPhase = LifecyclePhase.PROCESS_CLASSES)
 public class CheckModulesMojo extends AbstractMojo {
 
 	@Parameter(defaultValue = "${project.build.outputDirectory}", property = "outputDir", required = true, readonly = true)
 	private File outputDirectory;
 
+	/**
+	 * If true, the modules are checked for dependency cycles. Default: true.
+	 */
 	@Parameter(defaultValue = "true", required = true)
 	private boolean checkDepedencyCycles;
 
+	/**
+	 * If true, all classes have to be in a module. Default: false
+	 */
 	@Parameter(defaultValue = "false", required = true)
 	private boolean checkAllClassesInModule;
 
@@ -90,7 +99,9 @@ public class CheckModulesMojo extends AbstractMojo {
 			project.checkAllClassesInModule(errors);
 		}
 
+		getLog().info("Checking class dependencies ...");
 		project.checkClasses(errors);
+
 		if (!errors.isEmpty()) {
 			getLog().error("Errors while checking modules:");
 			for (String s : errors) {

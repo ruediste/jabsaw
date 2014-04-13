@@ -1,8 +1,8 @@
-package laf.module.model;
+package org.jabsaw.impl.model;
 
 import java.util.*;
 
-import laf.module.pattern.ClassPattern;
+import org.jabsaw.impl.pattern.ClassPattern;
 
 public class ModuleModel {
 	private final ProjectModel projectModel;

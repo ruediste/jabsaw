@@ -1,4 +1,4 @@
-package laf.module.pattern;
+package org.jabsaw.impl.pattern;
 
 import static org.junit.Assert.*;
 

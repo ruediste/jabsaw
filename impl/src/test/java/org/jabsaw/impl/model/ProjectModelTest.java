@@ -1,9 +1,11 @@
-package laf.module.model;
+package org.jabsaw.impl.model;
 
 import static org.junit.Assert.*;
 
 import java.util.ArrayList;
 
+import org.jabsaw.impl.model.ModuleModel;
+import org.jabsaw.impl.model.ProjectModel;
 import org.junit.Test;
 
 public class ProjectModelTest {
