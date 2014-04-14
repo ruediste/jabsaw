@@ -1,15 +1,14 @@
 package org.jabsaw.maven;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.*;
-import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.Path;
 import java.util.ArrayList;
 
 import org.apache.maven.plugin.*;
 import org.apache.maven.plugins.annotations.*;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.jabsaw.impl.ClassParser;
+import org.jabsaw.impl.ClassParser.DirectoryParsingCallback;
 import org.jabsaw.impl.model.ProjectModel;
 
 /**
@@ -39,49 +38,19 @@ public class CheckModulesMojo extends AbstractMojo {
 		getLog().info("Checking Modules ...");
 
 		final ClassParser parser = new ClassParser();
-		try {
-			Files.walkFileTree(outputDirectory.toPath(),
-					new FileVisitor<Path>() {
+		parser.parseDirectory(errors, outputDirectory.toPath(),
+				new DirectoryParsingCallback() {
 
-				@Override
-				public FileVisitResult preVisitDirectory(Path dir,
-						BasicFileAttributes attrs) throws IOException {
-					return FileVisitResult.CONTINUE;
-				}
+			@Override
+			public void parsingFile(Path file) {
+				getLog().debug("parsing " + file.toString());
+			}
 
-				@Override
-				public FileVisitResult visitFile(Path file,
-						BasicFileAttributes attrs) throws IOException {
-					if (attrs.isRegularFile()
-							&& file.getFileName().toString()
-							.endsWith(".class")) {
-						getLog().debug("parsing " + file.toString());
-						try {
-									parser.parse(file.toFile());
-						} catch (Throwable t) {
-							getLog().error(
-											"Error while parsing " + file, t);
-							errors.add("Error whil parsing " + file);
-						}
-					}
-					return FileVisitResult.CONTINUE;
-				}
-
-				@Override
-				public FileVisitResult visitFileFailed(Path file,
-						IOException exc) throws IOException {
-					return FileVisitResult.CONTINUE;
-				}
-
-				@Override
-				public FileVisitResult postVisitDirectory(Path dir,
-						IOException exc) throws IOException {
-					return FileVisitResult.CONTINUE;
-				}
-			});
-		} catch (IOException e) {
-			throw new RuntimeException("Error while reading input files", e);
-		}
+			@Override
+			public void error(String error) {
+				errors.add(error);
+			}
+		});
 
 		ProjectModel project = parser.getProject();
 		project.resolveDependencies();

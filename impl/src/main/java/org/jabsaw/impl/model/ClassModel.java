@@ -125,11 +125,16 @@ public class ClassModel {
 	private ClassModel toplevelClass;
 
 	ClassModel getToplevelClass() {
+		Set<ClassModel> visited = new HashSet<>();
+		toplevelClass = this;
 		if (toplevelClass == null) {
-			if (outerClass == null) {
-				toplevelClass = this;
-			} else {
-				toplevelClass = outerClass.getToplevelClass();
+			while (true) {
+				if (toplevelClass.outerClass != null
+						&& visited.add(toplevelClass)) {
+					toplevelClass = toplevelClass.outerClass;
+				} else {
+					break;
+				}
 			}
 		}
 		return toplevelClass;

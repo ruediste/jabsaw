@@ -11,6 +11,7 @@
 		<module>api</module>
 		<module>impl</module>
 		<module>maven</module>
+		<module>cli</module>
 	</modules>
 	<build>
 		<pluginManagement>

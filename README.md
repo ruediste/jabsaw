@@ -11,7 +11,11 @@ We are not yet on Maven Central, but installation is easy:
 	cd jabsaw
 	mvn install
 	
-JabSaw currently comes with a maven plugin. Simply add
+	
+Maven Plugin
+------------
+
+JabSaw comes with a maven plugin. Add
 
 	...
 	<build>
@@ -34,6 +38,14 @@ JabSaw currently comes with a maven plugin. Simply add
 		</plugins>
 	</build>
 	...
+	<dependencies>
+		<dependency>
+			<groupId>org.jabsaw</groupId>
+			<artifactId>jabsaw-api</artifactId>
+			<version>1.0-SNAPSHOT</version>
+		</dependency>
+		...
+	</dependencies>
 
 to your pom.xml. Then define your module by creating an empty class named after your module, and annotating it 
 with the @org.jabsaw.Module annotation. This annotation is used to define imported and exported modules. By
@@ -49,3 +61,10 @@ inclusion and exclusion filters. Example:
   
 This creates the ImplModule, which depends on the ApiModule, and exports it to it's clients. During the build,
 the plugin will check that the ImplModule will not depend on any class in another module than the ApiModule. For details see the JavaDoc of the Module annotation.
+
+Command Line Interface
+----------------------
+There is a command line interface in jabsaw-cli. All dependencies are packed within the jar file.
+
+	java -jar jabsaw-cli-1.0-SNAPSHOT.jar .
+	

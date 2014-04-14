@@ -1,6 +1,9 @@
 package org.jabsaw.impl;
 
 import java.io.*;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
 
 import org.jabsaw.impl.model.*;
 import org.jabsaw.impl.pattern.ClassPattern;
@@ -16,8 +19,61 @@ public class ClassParser {
 		return project;
 	}
 
-	public void parse(File file) throws FileNotFoundException, IOException {
-		try (FileInputStream fis = new FileInputStream(file)) {
+	public interface DirectoryParsingCallback {
+		void parsingFile(Path file);
+
+		void error(String error);
+	}
+
+	public void parseDirectory(final ArrayList<String> errors, Path directory,
+			final DirectoryParsingCallback callback) {
+		try {
+			Files.walkFileTree(directory, new FileVisitor<Path>() {
+
+				@Override
+				public FileVisitResult preVisitDirectory(Path dir,
+						BasicFileAttributes attrs) throws IOException {
+					return FileVisitResult.CONTINUE;
+				}
+
+				@Override
+				public FileVisitResult visitFile(Path file,
+						BasicFileAttributes attrs) throws IOException {
+					if (attrs.isRegularFile()
+							&& file.getFileName().toString().endsWith(".class")) {
+						callback.parsingFile(file);
+
+						try {
+							parse(file);
+						} catch (Throwable t) {
+							StringWriter writer = new StringWriter();
+							t.printStackTrace(new PrintWriter(writer));
+							callback.error("Error while parsing " + file + ": "
+									+ t.getMessage() + "\n" + writer.toString());
+						}
+					}
+					return FileVisitResult.CONTINUE;
+				}
+
+				@Override
+				public FileVisitResult visitFileFailed(Path file,
+						IOException exc) throws IOException {
+					return FileVisitResult.CONTINUE;
+				}
+
+				@Override
+				public FileVisitResult postVisitDirectory(Path dir,
+						IOException exc) throws IOException {
+					return FileVisitResult.CONTINUE;
+				}
+			});
+		} catch (IOException e) {
+			throw new RuntimeException("Error while reading input files", e);
+		}
+	}
+
+	public void parse(Path file) throws FileNotFoundException, IOException {
+		try (FileInputStream fis = new FileInputStream(file.toFile())) {
 			ClassReader reader = new ClassReader(fis);
 			parse(reader);
 		}
