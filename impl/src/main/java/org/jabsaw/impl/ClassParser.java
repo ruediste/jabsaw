@@ -79,7 +79,7 @@ public class ClassParser {
 		}
 	}
 
-	void parse(ClassReader reader) {
+	public void parse(ClassReader reader) {
 		reader.accept(new ParsingClassVisitor(), ClassReader.SKIP_FRAMES);
 	}
 

@@ -2,8 +2,8 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<artifactId>jabsaw-impl</artifactId>
-	<name>JabSaw Implementation</name>
+	<artifactId>jabsaw-util</artifactId>
+	<name>Jabsaw Utilities</name>
 	<packaging>jar</packaging>
 	<url>http://maven.apache.org</url>
 
@@ -18,23 +18,16 @@
 	</properties>
 
 	<dependencies>
-
-		<dependency>
-			<groupId>org.ow2.asm</groupId>
-			<artifactId>asm</artifactId>
-			<version>5.0.1</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.jgrapht</groupId>
-			<artifactId>jgrapht-core</artifactId>
-			<version>0.9.0</version>
-		</dependency>
 		<dependency>
 			<groupId>org.jabsaw</groupId>
-			<artifactId>jabsaw-api</artifactId>
+			<artifactId>jabsaw-impl</artifactId>
 			<version>${project.version}</version>
-			<scope>test</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>16.0.1</version>
 		</dependency>
 	</dependencies>
 

@@ -2,7 +2,7 @@ package org.jabsaw.impl.model;
 
 import java.util.*;
 
-public class ClassModel {
+public class ClassModel implements ModelNode {
 
 	private final ProjectModel projectModel;
 	private final String qualifiedName;
@@ -21,6 +21,12 @@ public class ClassModel {
 
 	final Set<ClassModel> usesClasses = new HashSet<>();
 	final Set<String> usesClassNames = new HashSet<>();
+
+	/**
+	 * All classes this class depends upon. Includes all transitive dependencies
+	 * of this class, even if the dependencies are not in a module themselves.
+	 */
+	public Set<ClassModel> allClassDependencies = new HashSet<>();
 
 	public String getQualifiedName() {
 		return qualifiedName;
@@ -144,4 +150,7 @@ public class ClassModel {
 		return Collections.unmodifiableSet(innerClassNames);
 	}
 
+	public Set<ClassModel> getAllClassDependencies() {
+		return Collections.unmodifiableSet(allClassDependencies);
+	}
 }

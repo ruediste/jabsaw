@@ -104,6 +104,8 @@ public class ProjectModel {
 
 		calculateExportedModules();
 		calculateAccessibleModules();
+		calculateModuleDependencies();
+		calculateClassDependencies();
 	}
 
 	private static class Edge {
@@ -115,13 +117,7 @@ public class ProjectModel {
 			throw new Error("Call resolveDependencies() first");
 		}
 
-		SimpleDirectedGraph<ModuleModel, Edge> g = buildExportGraph();
-		// add import dependencies
-		for (ModuleModel module : modules.values()) {
-			for (ModuleModel imported : module.importedModules) {
-				g.addEdge(module, imported);
-			}
-		}
+		SimpleDirectedGraph<ModuleModel, Edge> g = buildModuleDependencyGraph();
 
 		CycleDetector<ModuleModel, Edge> detector = new CycleDetector<>(g);
 		Set<ModuleModel> cycleModules = detector.findCycles();
@@ -130,6 +126,21 @@ public class ProjectModel {
 			errors.add("Found cycle in module dependency graph. Involved modules: "
 					+ cycleModules);
 		}
+	}
+
+	/**
+	 * Build a graph containing all module dependencies
+	 */
+	private SimpleDirectedGraph<ModuleModel, Edge> buildModuleDependencyGraph() {
+		SimpleDirectedGraph<ModuleModel, Edge> g = buildExportGraph();
+
+		// add import dependencies
+		for (ModuleModel module : modules.values()) {
+			for (ModuleModel imported : module.importedModules) {
+				g.addEdge(module, imported);
+			}
+		}
+		return g;
 	}
 
 	private void calculateExportedModules() {
@@ -141,6 +152,71 @@ public class ProjectModel {
 			module.allExportedModules.add(module);
 			for (Edge e : g.outgoingEdgesOf(module)) {
 				module.allExportedModules.add(g.getEdgeTarget(e));
+			}
+		}
+	}
+
+	private void calculateModuleDependencies() {
+		SimpleDirectedGraph<ModuleModel, Edge> g = buildModuleDependencyGraph();
+
+		TransitiveClosure.INSTANCE.closeSimpleDirectedGraph(g);
+
+		for (ModuleModel module : modules.values()) {
+			module.allExportedModules.add(module);
+			for (Edge e : g.outgoingEdgesOf(module)) {
+				module.allModuleDependencies.add(g.getEdgeTarget(e));
+			}
+		}
+	}
+
+	private void calculateClassDependencies() {
+		SimpleDirectedGraph<ModelNode, Edge> g = new SimpleDirectedGraph<>(
+				new EdgeFactory<ModelNode, Edge>() {
+
+					@Override
+					public Edge createEdge(ModelNode sourceVertex,
+							ModelNode targetVertex) {
+						return new Edge();
+					}
+				});
+
+		// add all modules
+		for (ModuleModel module : modules.values()) {
+			g.addVertex(module);
+		}
+		// add all classes
+		for (ClassModel clazz : classes.values()) {
+			g.addVertex(clazz);
+		}
+
+		// add dependencies from modules to classes
+		for (ModuleModel module : modules.values()) {
+			for (ClassModel clazz : module.classes) {
+				g.addEdge(module, clazz);
+			}
+		}
+		// add dependencies between classes
+		for (ClassModel clazz : classes.values()) {
+			for (ClassModel used : clazz.usesClasses) {
+				g.addEdge(clazz, used);
+			}
+		}
+
+		// calculate closure
+		TransitiveClosure.INSTANCE.closeSimpleDirectedGraph(g);
+
+		// update Modules
+		for (ModuleModel module : modules.values()) {
+			for (Edge e : g.outgoingEdgesOf(module)) {
+				module.allClassDependencies
+				.add((ClassModel) g.getEdgeTarget(e));
+			}
+		}
+
+		// update classes
+		for (ClassModel clazz : classes.values()) {
+			for (Edge e : g.outgoingEdgesOf(clazz)) {
+				clazz.allClassDependencies.add((ClassModel) g.getEdgeTarget(e));
 			}
 		}
 	}

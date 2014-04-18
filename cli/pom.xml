@@ -49,7 +49,7 @@
 		<dependency>
 			<groupId>org.jabsaw</groupId>
 			<artifactId>jabsaw-impl</artifactId>
-			<version>1.0-SNAPSHOT</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>args4j</groupId>

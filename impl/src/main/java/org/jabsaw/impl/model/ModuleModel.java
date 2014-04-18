@@ -4,7 +4,7 @@ import java.util.*;
 
 import org.jabsaw.impl.pattern.ClassPattern;
 
-public class ModuleModel {
+public class ModuleModel implements ModelNode {
 	private final ProjectModel projectModel;
 	private final String qualifiedNameOfRepresentingClass;
 	final Set<ClassModel> classes = new HashSet<ClassModel>();
@@ -48,6 +48,18 @@ public class ModuleModel {
 	 * itself.
 	 */
 	final Set<ModuleModel> allExportedModules = new HashSet<>();
+
+	/**
+	 * All modules this module depends upon. Includes transitive dependencies
+	 */
+	final Set<ModuleModel> allModuleDependencies = new HashSet<>();
+
+	/**
+	 * All classes this module depends upon. Includes all transitive
+	 * dependencies of the classes in this module, even if the dependencies are
+	 * not in a module themselves
+	 */
+	public Set<ClassModel> allClassDependencies = new HashSet<>();
 
 	public ModuleModel(ProjectModel projectModel,
 			String qualifiedNameOfRepresentingClass) {
@@ -205,5 +217,21 @@ public class ModuleModel {
 
 	public Set<String> getImportedModuleNames() {
 		return Collections.unmodifiableSet(importedModuleNames);
+	}
+
+	/**
+	 * All modules this module depends upon. Includes transitive dependencies
+	 */
+	public Set<ModuleModel> getAllModuleDependencies() {
+		return Collections.unmodifiableSet(allModuleDependencies);
+	}
+
+	/**
+	 * All classes this module depends upon. Includes all transitive
+	 * dependencies of the classes in this module, even if the dependencies are
+	 * not in a module themselves
+	 */
+	public Set<ClassModel> getAllClassDependencies() {
+		return Collections.unmodifiableSet(allClassDependencies);
 	}
 }
