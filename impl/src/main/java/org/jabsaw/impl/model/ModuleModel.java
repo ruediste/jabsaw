@@ -1,6 +1,8 @@
 package org.jabsaw.impl.model;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.jabsaw.impl.pattern.ClassPattern;
 
@@ -232,6 +234,10 @@ public class ModuleModel implements ModelNode {
 	 * not in a module themselves
 	 */
 	public Set<ClassModel> getAllClassDependencies() {
-		return Collections.unmodifiableSet(allClassDependencies);
+		HashSet<ClassModel> result = new HashSet<>();
+		for (ClassModel clazz : classes) {
+			ClassModel.getAllClassDependencies(result, clazz);
+		}
+		return result;
 	}
 }

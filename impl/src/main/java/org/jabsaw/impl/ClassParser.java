@@ -1,13 +1,31 @@
 package org.jabsaw.impl;
 
-import java.io.*;
-import java.nio.file.*;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.nio.file.FileVisitResult;
+import java.nio.file.FileVisitor;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 
-import org.jabsaw.impl.model.*;
+import org.jabsaw.impl.model.ClassModel;
+import org.jabsaw.impl.model.ModuleModel;
+import org.jabsaw.impl.model.ProjectModel;
 import org.jabsaw.impl.pattern.ClassPattern;
-import org.objectweb.asm.*;
+import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.Handle;
+import org.objectweb.asm.Label;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.TypePath;
 import org.objectweb.asm.signature.SignatureReader;
 import org.objectweb.asm.signature.SignatureVisitor;
 
@@ -104,6 +122,14 @@ public class ClassParser {
 		}
 
 		@Override
+		public void visitOuterClass(String owner, String name, String desc) {
+			super.visitOuterClass(owner, name, desc);
+			System.out.println(classModel.getQualifiedName() + " " + owner);
+			classModel.outerClassName = Type.getObjectType(owner)
+					.getClassName();
+		}
+
+		@Override
 		public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
 			if ("org.jabsaw.Module".equals(Type.getType(desc).getClassName())) {
 				return new ModuleAnnotationVisitor(
@@ -112,6 +138,13 @@ public class ClassParser {
 				handleTypeDescriptor(classModel, desc);
 				return new ParsingAnnotationVisitor(classModel);
 			}
+		}
+
+		@Override
+		public void visitInnerClass(String name, String outerName,
+				String innerName, int access) {
+			classModel.innerClassNames.add(Type.getObjectType(name)
+					.getClassName());
 		}
 
 		@Override
@@ -135,12 +168,6 @@ public class ClassParser {
 			return new ParsingFieldVisitor(classModel);
 		}
 
-		@Override
-		public void visitInnerClass(String name, String outerName,
-				String innerName, int access) {
-			classModel.addInnerClassName(Type.getObjectType(name)
-					.getClassName());
-		}
 	}
 
 	public class ParsingFieldVisitor extends FieldVisitor {
@@ -502,7 +529,9 @@ public class ClassParser {
 	}
 
 	void handleType(ClassModel classModel, String internalName) {
-		handleType(classModel, Type.getObjectType(internalName));
+		if (internalName != null) {
+			handleType(classModel, Type.getObjectType(internalName));
+		}
 	}
 
 	void handleType(ClassModel classModel, Type type) {

@@ -1,6 +1,12 @@
 package org.jabsaw.impl.model;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.jgrapht.EdgeFactory;
 import org.jgrapht.alg.CycleDetector;
@@ -47,14 +53,28 @@ public class ProjectModel {
 	}
 
 	void addClass(ClassModel clazz) {
+		checkDependenciesNotResolved();
 		classes.put(clazz.getQualifiedName(), clazz);
 	}
 
 	void addModule(ModuleModel module) {
+		checkDependenciesNotResolved();
 		modules.put(module.getQualifiedNameOfRepresentingClass(), module);
 	}
 
 	boolean dependenciesResolved = false;
+
+	public void checkDependenciesResolved() {
+		if (!dependenciesResolved) {
+			throw new Error("use resolveDependencies() to resolve dependencies");
+		}
+	}
+
+	public void checkDependenciesNotResolved() {
+		if (dependenciesResolved) {
+			throw new Error("dependencies are already resolved");
+		}
+	}
 
 	/**
 	 * Resolve class names recorded during parsing to the actual model objects
@@ -66,46 +86,40 @@ public class ProjectModel {
 		}
 		dependenciesResolved = true;
 
-		// resolve inner classes classes
+		// resolve outer classes first
 		for (ClassModel classModel : classes.values()) {
-			classModel.resolveInnerClasses();
+			classModel.resolveOuterClass();
 		}
 
+		// resolve used classes and the module
 		for (ClassModel classModel : classes.values()) {
-			if (classModel.outerClass != null) {
-				continue;
+			classModel.resolveUsedClasses();
+			if (classModel.outerClass == null) {
+				classModel.resolveModule();
 			}
-			classModel.resolveDependencies();
+		}
+
+		// remvoe inner classes
+		for (ClassModel classModel : new ArrayList<>(classes.values())) {
+			if (classModel.outerClass != null) {
+				// merge class with toplevel class
+				classModel.getToplevelClass().usesClasses
+				.addAll(classModel.usesClasses);
+				classes.remove(classModel.getQualifiedName());
+			}
 		}
 
 		for (ModuleModel moduleModel : modules.values()) {
 			moduleModel.resolveDependencies();
 		}
 
-		// remove inner classes
-		for (ClassModel classModel : new ArrayList<>(classes.values())) {
-			if (classModel.outerClass != null) {
-				classes.remove(classModel.getQualifiedName());
-			}
-		}
-
+		calculateModuleDepenendencies();
 	}
 
-	boolean transitiveClosuresCalculated = false;
-
-	public void calculateTransitiveClosures() {
-		if (!dependenciesResolved) {
-			throw new Error("call resolveDependencies() first");
-		}
-		if (transitiveClosuresCalculated) {
-			throw new Error("can calculate transitive closures only once");
-		}
-		transitiveClosuresCalculated = true;
-
+	void calculateModuleDepenendencies() {
 		calculateExportedModules();
 		calculateAccessibleModules();
 		calculateModuleDependencies();
-		calculateClassDependencies();
 	}
 
 	private static class Edge {
@@ -169,58 +183,6 @@ public class ProjectModel {
 		}
 	}
 
-	private void calculateClassDependencies() {
-		SimpleDirectedGraph<ModelNode, Edge> g = new SimpleDirectedGraph<>(
-				new EdgeFactory<ModelNode, Edge>() {
-
-					@Override
-					public Edge createEdge(ModelNode sourceVertex,
-							ModelNode targetVertex) {
-						return new Edge();
-					}
-				});
-
-		// add all modules
-		for (ModuleModel module : modules.values()) {
-			g.addVertex(module);
-		}
-		// add all classes
-		for (ClassModel clazz : classes.values()) {
-			g.addVertex(clazz);
-		}
-
-		// add dependencies from modules to classes
-		for (ModuleModel module : modules.values()) {
-			for (ClassModel clazz : module.classes) {
-				g.addEdge(module, clazz);
-			}
-		}
-		// add dependencies between classes
-		for (ClassModel clazz : classes.values()) {
-			for (ClassModel used : clazz.usesClasses) {
-				g.addEdge(clazz, used);
-			}
-		}
-
-		// calculate closure
-		TransitiveClosure.INSTANCE.closeSimpleDirectedGraph(g);
-
-		// update Modules
-		for (ModuleModel module : modules.values()) {
-			for (Edge e : g.outgoingEdgesOf(module)) {
-				module.allClassDependencies
-				.add((ClassModel) g.getEdgeTarget(e));
-			}
-		}
-
-		// update classes
-		for (ClassModel clazz : classes.values()) {
-			for (Edge e : g.outgoingEdgesOf(clazz)) {
-				clazz.allClassDependencies.add((ClassModel) g.getEdgeTarget(e));
-			}
-		}
-	}
-
 	private SimpleDirectedGraph<ModuleModel, Edge> buildExportGraph() {
 		SimpleDirectedGraph<ModuleModel, Edge> g = new SimpleDirectedGraph<>(
 				new EdgeFactory<ModuleModel, Edge>() {
@@ -269,9 +231,9 @@ public class ProjectModel {
 	/**
 	 * Check the classes for dependencies and collect all errors
 	 */
-	public void checkClasses(List<String> errors) {
+	public void checkClassAccessibility(List<String> errors) {
 		for (ClassModel clazz : classes.values()) {
-			clazz.checkDependencies(errors);
+			clazz.checkAccessibilityOfUsedClasses(errors);
 		}
 	}
 
@@ -303,7 +265,4 @@ public class ProjectModel {
 		return dependenciesResolved;
 	}
 
-	public boolean isTransitiveClosuresCalculated() {
-		return transitiveClosuresCalculated;
-	}
 }

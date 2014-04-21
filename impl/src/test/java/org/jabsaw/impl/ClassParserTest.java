@@ -1,12 +1,13 @@
 package org.jabsaw.impl;
 
-import static org.junit.Assert.*;
-
 import java.io.IOException;
 import java.util.Set;
 
 import org.jabsaw.Module;
-import org.jabsaw.impl.model.*;
+import org.jabsaw.impl.model.ClassModel;
+import org.jabsaw.impl.model.ModuleModel;
+import org.jabsaw.impl.model.ProjectModel;
+import org.junit.Assert;
 import org.junit.Test;
 import org.objectweb.asm.ClassReader;
 
@@ -28,18 +29,20 @@ public class ClassParserTest {
 		parser.parse(reader);
 		ModuleModel module = parser.getProject().getModule(
 				TestModule.class.getName());
-		assertEquals(TestModule.class.getName(),
+		Assert.assertEquals(TestModule.class.getName(),
 				module.getQualifiedNameOfRepresentingClass());
-		assertTrue(module.getExclusionPatterns().toString()
+		Assert.assertTrue(module.getExclusionPatterns().toString()
 				.contains(Foo.class.getName()));
-		assertTrue(module.getExclusionPatterns().toString().contains("bar.*"));
-		assertTrue(module.getExportedModuleNames()
+		Assert.assertTrue(module.getExclusionPatterns().toString()
+				.contains("bar.*"));
+		Assert.assertTrue(module.getExportedModuleNames().contains(
+				Foo.class.getName()));
+		Assert.assertTrue(module.getImportedModuleNames().contains(
+				Foo.class.getName()));
+		Assert.assertTrue(module.getInclusionPatterns().toString()
 				.contains(Foo.class.getName()));
-		assertTrue(module.getImportedModuleNames()
-				.contains(Foo.class.getName()));
-		assertTrue(module.getInclusionPatterns().toString()
-				.contains(Foo.class.getName()));
-		assertTrue(module.getInclusionPatterns().toString().contains("bar.bar"));
+		Assert.assertTrue(module.getInclusionPatterns().toString()
+				.contains("bar.bar"));
 	}
 
 	private @interface TestNestedAnnotationDirect {
@@ -127,7 +130,7 @@ public class ClassParserTest {
 			@SuppressWarnings("unused")
 			@TestLocalVariableAnnotation
 			TestLocalVariabe foo = null;
-			testStaticClass(null, testField);
+			ClassParserTest.testStaticClass(null, ClassParserTest.testField);
 			return null;
 		}
 
@@ -166,7 +169,7 @@ public class ClassParserTest {
 	}
 
 	private <T> void assertContains(T element, Set<T> set) {
-		assertTrue("expected " + element + " to be contained in " + set,
+		Assert.assertTrue("expected " + element + " to be contained in " + set,
 				set.contains(element));
 	}
 
@@ -180,12 +183,12 @@ public class ClassParserTest {
 				"ClassNestingTestClass$InnerClass.class"));
 		parser.parse(reader);
 		ProjectModel project = parser.getProject();
-		assertEquals(2, project.getClasses().values().size());
-		assertFalse(project
-				.getClassModel(ClassNestingTestClass.class.getName())
-				.getInnerClassNames().isEmpty());
+		// project.resolveDependencies();
+		Assert.assertEquals(2, project.getClasses().values().size());
+		Assert.assertFalse(project.getClassModel(ClassNestingTestClass.class
+				.getName()).innerClassNames.isEmpty());
 		project.resolveDependencies();
-		assertEquals(1, project.getClasses().values().size());
+		Assert.assertEquals(1, project.getClasses().values().size());
 
 	}
 

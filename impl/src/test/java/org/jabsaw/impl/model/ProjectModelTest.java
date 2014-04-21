@@ -1,11 +1,8 @@
 package org.jabsaw.impl.model;
 
-import static org.junit.Assert.*;
-
 import java.util.ArrayList;
 
-import org.jabsaw.impl.model.ModuleModel;
-import org.jabsaw.impl.model.ProjectModel;
+import org.junit.Assert;
 import org.junit.Test;
 
 public class ProjectModelTest {
@@ -16,11 +13,11 @@ public class ProjectModelTest {
 
 		ModuleModel a = new ModuleModel(project, "foo");
 		project.dependenciesResolved = true;
-		project.calculateTransitiveClosures();
-		assertEquals(1, a.allExportedModules.size());
-		assertEquals(1, a.allAccessibleModules.size());
-		assertTrue(a.allExportedModules.contains(a));
-		assertTrue(a.allAccessibleModules.contains(a));
+		project.calculateModuleDepenendencies();
+		Assert.assertEquals(1, a.allExportedModules.size());
+		Assert.assertEquals(1, a.allAccessibleModules.size());
+		Assert.assertTrue(a.allExportedModules.contains(a));
+		Assert.assertTrue(a.allAccessibleModules.contains(a));
 	}
 
 	@Test
@@ -32,12 +29,12 @@ public class ProjectModelTest {
 		a.importedModules.add(b);
 
 		project.dependenciesResolved = true;
-		project.calculateTransitiveClosures();
-		assertEquals(1, a.allExportedModules.size());
-		assertEquals(2, a.allAccessibleModules.size());
-		assertTrue(a.allExportedModules.contains(a));
-		assertTrue(a.allAccessibleModules.contains(a));
-		assertTrue(a.allAccessibleModules.contains(b));
+		project.calculateModuleDepenendencies();
+		Assert.assertEquals(1, a.allExportedModules.size());
+		Assert.assertEquals(2, a.allAccessibleModules.size());
+		Assert.assertTrue(a.allExportedModules.contains(a));
+		Assert.assertTrue(a.allAccessibleModules.contains(a));
+		Assert.assertTrue(a.allAccessibleModules.contains(b));
 	}
 
 	@Test
@@ -52,7 +49,7 @@ public class ProjectModelTest {
 		project.dependenciesResolved = true;
 		ArrayList<String> errors = new ArrayList<>();
 		project.checkDependencyCycles(errors);
-		assertFalse(errors.isEmpty());
+		Assert.assertFalse(errors.isEmpty());
 	}
 
 	@Test
@@ -64,13 +61,13 @@ public class ProjectModelTest {
 		a.exportedModules.add(b);
 
 		project.dependenciesResolved = true;
-		project.calculateTransitiveClosures();
-		assertEquals(2, a.allExportedModules.size());
-		assertEquals(2, a.allAccessibleModules.size());
-		assertTrue(a.allExportedModules.contains(a));
-		assertTrue(a.allExportedModules.contains(b));
-		assertTrue(a.allAccessibleModules.contains(a));
-		assertTrue(a.allAccessibleModules.contains(b));
+		project.calculateModuleDepenendencies();
+		Assert.assertEquals(2, a.allExportedModules.size());
+		Assert.assertEquals(2, a.allAccessibleModules.size());
+		Assert.assertTrue(a.allExportedModules.contains(a));
+		Assert.assertTrue(a.allExportedModules.contains(b));
+		Assert.assertTrue(a.allAccessibleModules.contains(a));
+		Assert.assertTrue(a.allAccessibleModules.contains(b));
 	}
 
 	@Test
@@ -83,17 +80,59 @@ public class ProjectModelTest {
 		a.importedModules.add(b);
 		b.exportedModules.add(c);
 
-		project.dependenciesResolved = true;
-		project.calculateTransitiveClosures();
+		project.calculateModuleDepenendencies();
 
-		assertEquals(2, b.allExportedModules.size());
+		Assert.assertEquals(2, b.allExportedModules.size());
 
-		assertEquals(1, a.allExportedModules.size());
-		assertEquals(3, a.allAccessibleModules.size());
-		assertTrue(a.allExportedModules.contains(a));
-		assertTrue(a.allAccessibleModules.contains(a));
-		assertTrue(a.allAccessibleModules.contains(b));
-		assertTrue(a.allAccessibleModules.contains(c));
+		Assert.assertEquals(1, a.allExportedModules.size());
+		Assert.assertEquals(3, a.allAccessibleModules.size());
+		Assert.assertTrue(a.allExportedModules.contains(a));
+		Assert.assertTrue(a.allAccessibleModules.contains(a));
+		Assert.assertTrue(a.allAccessibleModules.contains(b));
+		Assert.assertTrue(a.allAccessibleModules.contains(c));
 	}
 
+	@Test
+	public void innerClassesMergingDependencyFromToplevel() {
+		ProjectModel project = new ProjectModel();
+
+		ClassModel a = new ClassModel(project, "a");
+		ClassModel b = new ClassModel(project, "b");
+		ClassModel c = new ClassModel(project, "c");
+
+		b.outerClassName = "a";
+		c.addUsesClassName("b");
+
+		project.resolveDependencies();
+
+		Assert.assertTrue(c.getUsesClasses().contains(a));
+		Assert.assertFalse(c.getUsesClasses().contains(b));
+		Assert.assertNotNull(project.getClassModel("a"));
+		Assert.assertNull(project.getClassModel("b"));
+		Assert.assertNotNull(project.getClassModel("c"));
+	}
+
+	@Test
+	public void innerClassesMergingDependencyFromInner() {
+		ProjectModel project = new ProjectModel();
+
+		ClassModel a = new ClassModel(project, "a");
+		ClassModel b = new ClassModel(project, "b");
+		ClassModel c = new ClassModel(project, "c");
+		ClassModel d = new ClassModel(project, "d");
+
+		b.outerClassName = "a";
+		d.outerClassName = "c";
+		d.addUsesClassName("b");
+
+		project.resolveDependencies();
+
+		Assert.assertTrue(c.getUsesClasses().contains(a));
+		Assert.assertFalse(c.getUsesClasses().contains(b));
+
+		Assert.assertNotNull(project.getClassModel("a"));
+		Assert.assertNull(project.getClassModel("b"));
+		Assert.assertNotNull(project.getClassModel("c"));
+		Assert.assertNull(project.getClassModel("d"));
+	}
 }

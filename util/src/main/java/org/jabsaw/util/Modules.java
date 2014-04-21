@@ -8,6 +8,8 @@ import org.jabsaw.impl.ClassParser;
 import org.jabsaw.impl.model.ClassModel;
 import org.jabsaw.impl.model.ProjectModel;
 import org.objectweb.asm.ClassReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
@@ -18,12 +20,13 @@ import com.google.common.reflect.ClassPath.ClassInfo;
  * Static utility methods.
  */
 public class Modules {
+	private final static Logger logger = LoggerFactory.getLogger(Modules.class);
 
 	private static ProjectModel projectModel;
 
 	public static ProjectModel getProjectModel() {
 		synchronized (Modules.class) {
-			if (projectModel == null) {
+			if (Modules.projectModel == null) {
 				try {
 					// load all classes on the classpath
 					ClassLoader classLoader = Modules.class.getClassLoader();
@@ -33,21 +36,23 @@ public class Modules {
 					ClassParser parser = new ClassParser();
 					for (ClassInfo info : classes) {
 						try (InputStream is = classLoader
-								.getResourceAsStream(info.getName())) {
+								.getResourceAsStream(info.getResourceName())) {
 							ClassReader reader = new ClassReader(is);
 							parser.parse(reader);
 						} catch (Throwable t) {
-							System.err.println("Error while reading "
-									+ info.getName());
+							Modules.logger.error(
+									"Error while reading " + info.getName(), t);
 						}
 					}
+					parser.getProject().resolveDependencies();
+					Modules.projectModel = parser.getProject();
 				} catch (IOException e) {
 					throw new RuntimeException(
 							"error while reading classes on classpath", e);
 				}
 			}
 		}
-		return projectModel;
+		return Modules.projectModel;
 	}
 
 	/**
@@ -57,13 +62,13 @@ public class Modules {
 	public static Class<?>[] getAllRequiredClasses(Class<?> module) {
 		HashSet<Class<?>> result = new HashSet<>();
 		ClassLoader classLoader = Modules.class.getClassLoader();
-		for (ClassModel info : getProjectModel().getModule(module.getName())
-				.getAllClassDependencies()) {
+		for (ClassModel info : Modules.getProjectModel()
+				.getModule(module.getName()).getAllClassDependencies()) {
 			try {
 				result.add(classLoader.loadClass(info.getQualifiedName()));
 			} catch (ClassNotFoundException e) {
-				System.err.println("Error loading class "
-						+ info.getQualifiedName());
+				Modules.logger.error(
+						"Error loading class " + info.getQualifiedName(), e);
 			}
 		}
 		return result.toArray(new Class<?>[] {});
@@ -75,13 +80,14 @@ public class Modules {
 	public static Class<?>[] getClasses(Class<?> module) {
 		HashSet<Class<?>> result = new HashSet<>();
 		ClassLoader classLoader = Modules.class.getClassLoader();
-		for (ClassModel info : getProjectModel().getModule(module.getName())
+		ProjectModel tmp = Modules.getProjectModel();
+		for (ClassModel info : tmp.getModule(module.getName())
 				.getAllClassDependencies()) {
 			try {
 				result.add(classLoader.loadClass(info.getQualifiedName()));
 			} catch (ClassNotFoundException e) {
-				System.err.println("Error loading class "
-						+ info.getQualifiedName());
+				Modules.logger.error(
+						"Error loading class " + info.getQualifiedName(), e);
 			}
 		}
 		return result.toArray(new Class<?>[] {});

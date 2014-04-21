@@ -4,9 +4,12 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
 
-import org.apache.maven.plugin.*;
-import org.apache.maven.plugins.annotations.*;
+import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.jabsaw.impl.ClassParser;
 import org.jabsaw.impl.ClassParser.DirectoryParsingCallback;
 import org.jabsaw.impl.model.ProjectModel;
@@ -41,20 +44,19 @@ public class CheckModulesMojo extends AbstractMojo {
 		parser.parseDirectory(errors, outputDirectory.toPath(),
 				new DirectoryParsingCallback() {
 
-			@Override
-			public void parsingFile(Path file) {
-				getLog().debug("parsing " + file.toString());
-			}
+					@Override
+					public void parsingFile(Path file) {
+						getLog().debug("parsing " + file.toString());
+					}
 
-			@Override
-			public void error(String error) {
-				errors.add(error);
-			}
-		});
+					@Override
+					public void error(String error) {
+						errors.add(error);
+					}
+				});
 
 		ProjectModel project = parser.getProject();
 		project.resolveDependencies();
-		project.calculateTransitiveClosures();
 
 		getLog().debug("Project Details:\n" + project.details());
 
@@ -69,7 +71,7 @@ public class CheckModulesMojo extends AbstractMojo {
 		}
 
 		getLog().info("Checking class dependencies ...");
-		project.checkClasses(errors);
+		project.checkClassAccessibility(errors);
 
 		if (!errors.isEmpty()) {
 			getLog().error("Errors while checking modules:");

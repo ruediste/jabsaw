@@ -1,13 +1,14 @@
 package org.jabsaw.impl.model;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class ClassModel implements ModelNode {
 
 	private final ProjectModel projectModel;
 	private final String qualifiedName;
-
-	private final Set<String> innerClassNames = new HashSet<>();
 
 	ClassModel outerClass;
 
@@ -22,12 +23,6 @@ public class ClassModel implements ModelNode {
 	final Set<ClassModel> usesClasses = new HashSet<>();
 	final Set<String> usesClassNames = new HashSet<>();
 
-	/**
-	 * All classes this class depends upon. Includes all transitive dependencies
-	 * of this class, even if the dependencies are not in a module themselves.
-	 */
-	public Set<ClassModel> allClassDependencies = new HashSet<>();
-
 	public String getQualifiedName() {
 		return qualifiedName;
 	}
@@ -38,10 +33,6 @@ public class ClassModel implements ModelNode {
 
 	public Set<ClassModel> getUsesClasses() {
 		return Collections.unmodifiableSet(usesClasses);
-	}
-
-	public void addInnerClassName(String inner) {
-		innerClassNames.add(inner);
 	}
 
 	public void addUsesClass(ClassModel clazz) {
@@ -70,15 +61,7 @@ public class ClassModel implements ModelNode {
 		}
 	}
 
-	public void resolveDependencies() {
-		// resolve usage dependencies
-		for (String usesClassName : usesClassNames) {
-			ClassModel classModel = projectModel.getClassModel(usesClassName);
-			if (classModel != null) {
-				addUsesClass(classModel.getToplevelClass());
-			}
-		}
-
+	public void resolveModule() {
 		// resolve module
 		Set<ModuleModel> matchingModules = projectModel
 				.getMatchingModules(this);
@@ -92,7 +75,37 @@ public class ClassModel implements ModelNode {
 		}
 	}
 
-	public void checkDependencies(List<String> errors) {
+	public String outerClassName;
+
+	public void resolveUsedClasses() {
+		// resolve usage dependencies
+		for (String usesClassName : usesClassNames) {
+			ClassModel classModel = projectModel.getClassModel(usesClassName);
+			if (classModel != null) {
+				addUsesClass(classModel.getToplevelClass());
+			}
+		}
+	}
+
+	public void resolveOuterClass() {
+		// resolve inner classes
+		for (String name : innerClassNames) {
+			ClassModel clazz = projectModel.getClassModel(name);
+			if (clazz != null) {
+				clazz.outerClass = this;
+			}
+		}
+
+		// resolve outer class
+		if (outerClassName != null) {
+			ClassModel clazz = projectModel.getClassModel(outerClassName);
+			if (clazz != null) {
+				outerClass = clazz;
+			}
+		}
+	}
+
+	public void checkAccessibilityOfUsedClasses(List<String> errors) {
 		if (module == null) {
 			return;
 		}
@@ -119,21 +132,13 @@ public class ClassModel implements ModelNode {
 		return sb.toString();
 	}
 
-	public void resolveInnerClasses() {
-		for (String name : innerClassNames) {
-			ClassModel innerClass = projectModel.getClassModel(name);
-			if (innerClass != null) {
-				innerClass.outerClass = this;
-			}
-		}
-	}
-
 	private ClassModel toplevelClass;
+	public Set<String> innerClassNames = new HashSet<>();
 
 	ClassModel getToplevelClass() {
 		Set<ClassModel> visited = new HashSet<>();
-		toplevelClass = this;
 		if (toplevelClass == null) {
+			toplevelClass = this;
 			while (true) {
 				if (toplevelClass.outerClass != null
 						&& visited.add(toplevelClass)) {
@@ -146,11 +151,23 @@ public class ClassModel implements ModelNode {
 		return toplevelClass;
 	}
 
-	public Set<String> getInnerClassNames() {
-		return Collections.unmodifiableSet(innerClassNames);
+	/**
+	 * All classes this class depends upon. Includes all transitive dependencies
+	 * of this class, even if the dependencies are not in a module themselves.
+	 */
+	public Set<ClassModel> getAllClassDependencies() {
+		HashSet<ClassModel> result = new HashSet<>();
+		ClassModel.getAllClassDependencies(result, this);
+		return result;
 	}
 
-	public Set<ClassModel> getAllClassDependencies() {
-		return Collections.unmodifiableSet(allClassDependencies);
+	static void getAllClassDependencies(HashSet<ClassModel> result,
+			ClassModel classModel) {
+		if (!result.add(classModel)) {
+			return;
+		}
+		for (ClassModel clazz : classModel.usesClasses) {
+			ClassModel.getAllClassDependencies(result, clazz);
+		}
 	}
 }

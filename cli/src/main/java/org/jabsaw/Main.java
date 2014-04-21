@@ -9,7 +9,10 @@ import java.util.List;
 import org.jabsaw.impl.ClassParser;
 import org.jabsaw.impl.ClassParser.DirectoryParsingCallback;
 import org.jabsaw.impl.model.ProjectModel;
-import org.kohsuke.args4j.*;
+import org.kohsuke.args4j.Argument;
+import org.kohsuke.args4j.CmdLineException;
+import org.kohsuke.args4j.CmdLineParser;
+import org.kohsuke.args4j.Option;
 
 public class Main {
 
@@ -57,7 +60,6 @@ public class Main {
 
 		ProjectModel project = parser.getProject();
 		project.resolveDependencies();
-		project.calculateTransitiveClosures();
 
 		if (verbose) {
 			System.out.println("Project Details:\n" + project.details());
@@ -74,7 +76,7 @@ public class Main {
 		}
 
 		System.out.println("Checking class dependencies ...");
-		project.checkClasses(errors);
+		project.checkClassAccessibility(errors);
 
 		if (!errors.isEmpty()) {
 			System.err.println("Errors while checking modules:");
@@ -112,7 +114,7 @@ public class Main {
 			// an error message.
 			System.err.println(e.getMessage());
 			System.err
-			.println("java -jar ... org.jabsaw.Main [options...] dirs...");
+					.println("java -jar ... org.jabsaw.Main [options...] dirs...");
 			// print the list of available options
 			parser.printUsage(System.err);
 			System.err.println();
