@@ -124,7 +124,6 @@ public class ClassParser {
 		@Override
 		public void visitOuterClass(String owner, String name, String desc) {
 			super.visitOuterClass(owner, name, desc);
-			System.out.println(classModel.getQualifiedName() + " " + owner);
 			classModel.outerClassName = Type.getObjectType(owner)
 					.getClassName();
 		}
@@ -336,7 +335,7 @@ public class ClassParser {
 		@Override
 		public void visitEnum(String name, String desc, String value) {
 			classModel
-			.addUsesClassName(Type.getObjectType(desc).getClassName());
+					.addUsesClassName(Type.getObjectType(desc).getClassName());
 		}
 	}
 
