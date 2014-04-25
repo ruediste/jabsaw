@@ -126,6 +126,9 @@ public class ProjectModel {
 
 	}
 
+	/**
+	 * Check if there are any cycles in the dependencies of the modules.
+	 */
 	public void checkDependencyCycles(List<String> errors) {
 		if (!dependenciesResolved) {
 			throw new Error("Call resolveDependencies() first");
@@ -225,7 +228,8 @@ public class ProjectModel {
 	}
 
 	/**
-	 * Check the classes for dependencies and collect all errors
+	 * Check if all classes respect the accessibility boundaries defined by the
+	 * modules.
 	 */
 	public void checkClassAccessibility(List<String> errors) {
 		for (ClassModel clazz : classes.values()) {

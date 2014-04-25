@@ -3,10 +3,12 @@ package org.jabsaw.util;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Properties;
 
 import org.jabsaw.impl.ClassParser;
 import org.jabsaw.impl.model.ClassModel;
+import org.jabsaw.impl.model.ModuleModel;
 import org.jabsaw.impl.model.ProjectModel;
 import org.objectweb.asm.ClassReader;
 import org.slf4j.Logger;
@@ -51,6 +53,9 @@ public class Modules {
 
 	}
 
+	/**
+	 * Return the {@link ProjectModel} of the current classpath.
+	 */
 	public static ProjectModel getProjectModel() {
 		synchronized (Modules.class) {
 			if (Modules.projectModel == null) {
@@ -110,6 +115,13 @@ public class Modules {
 	}
 
 	/**
+	 * Get the {@link ModuleModel} defined by the given representing class
+	 */
+	public static ModuleModel getModuleModel(Class<?> module) {
+		return Modules.getProjectModel().getModule(module.getName());
+	}
+
+	/**
 	 * Return all classes the given module depends on, including transitive
 	 * dependencies, even if they are not part of a module.
 	 */
@@ -118,8 +130,8 @@ public class Modules {
 		ClassLoader classLoader = Modules.class.getClassLoader();
 
 		// follow dependencies by classes
-		for (ClassModel info : Modules.getProjectModel()
-				.getModule(module.getName()).getAllClassDependencies()) {
+		for (ClassModel info : Modules.getModuleModel(module)
+				.getAllClassDependencies()) {
 			try {
 				result.add(classLoader.loadClass(info.getQualifiedName()));
 			} catch (ClassNotFoundException e) {
@@ -138,8 +150,7 @@ public class Modules {
 	public static Class<?>[] getClasses(Class<?> module) {
 		HashSet<Class<?>> result = new HashSet<>();
 		ClassLoader classLoader = Modules.class.getClassLoader();
-		ProjectModel tmp = Modules.getProjectModel();
-		for (ClassModel info : tmp.getModule(module.getName())
+		for (ClassModel info : Modules.getModuleModel(module)
 				.getAllClassDependencies()) {
 			try {
 				result.add(classLoader.loadClass(info.getQualifiedName()));
@@ -149,5 +160,29 @@ public class Modules {
 			}
 		}
 		return result.toArray(new Class<?>[] {});
+	}
+
+	/**
+	 * Check if all classes belong to a module. All errors are added to the
+	 * provided error list.
+	 */
+	public static void checkAllClassesInModule(List<String> errors) {
+		Modules.projectModel.checkAllClassesInModule(errors);
+	}
+
+	/**
+	 * Check if all classes respect the accessibility boundaries defined by the
+	 * modules. All errors are added to the provided error list.
+	 */
+	public static void checkClassAccessibility(List<String> errors) {
+		Modules.projectModel.checkClassAccessibility(errors);
+	}
+
+	/**
+	 * Check if there are any cycles in the dependencies of the modules. All
+	 * errors are added to the provided error list.
+	 */
+	public static void checkDependencyCycles(List<String> errors) {
+		Modules.projectModel.checkDependencyCycles(errors);
 	}
 }

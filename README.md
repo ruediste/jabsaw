@@ -147,9 +147,45 @@ This requires graphviz to be installed (the `dot` program). Under Ubuntu simply 
 	sudo apt-get install graphviz
 
 
-### Checking with the command Line Interface
-If you are not using Maven, you can use the command line interface. All dependencies are packed within the `jabsaw/cli/target/jabsaw-cli-<version>.jar file.
+### Checking with the Command Line Interface
+If you are not using Maven, you can use the command line interface. All dependencies are packed within the `jabsaw/cli/target/jabsaw-cli-<version>.jar` file.
 
 	java -jar jabsaw-cli-1.0-SNAPSHOT.jar .
 
 When no parameters are given, a help screen will be shown.
+
+### Using Unit Test Interface
+JabSaw is accessible from within unit tests. Add the util artifact to the `pom.xml`:
+
+	<dependency>
+		<groupId>org.jabsaw</groupId>
+		<artifactId>jabsaw-util</artifactId>
+		<version>1.0-SNAPSHOT</version>
+		<scope>test</scope>
+	</dependency>
+	
+This makes the `org.jabasaw.util.Modules` class accessible, which provides certain
+module related methods. When the first method is called, the modules are read form the
+test classpath. This can be configured by adding a `jabsaw.properties` file to the 
+root test classpath. When using main, put the file under `src/test/resources/jabsaw.properties`.
+The following properties are supported:
+
+	includeJars = true|false
+	  When set to true, jar files on the classpath will be parsed
+	  Default: true
+	excludePath = ...
+	  When defined, any resource on the classpath containing the 
+	  provided string will not be scanned.
+	  
+Example file working well with maven:
+
+	includeJars = false
+	excludePath = /target/test-classes/
+	
+To perform the various checks, use the `checkXXX()` methods. To integrate with [Arquillian](http://arquillian.org/),
+the `getAllRequiredClasses()` and `getClasses()` methods come in very handy. For example, the following will include all
+required classes of the `UrlMappingModule`:
+
+	ShrinkWrap
+		.create(WebArchive.class)
+		.addClasses(Modules.getAllRequiredClasses(UrlMappingModule.class));
