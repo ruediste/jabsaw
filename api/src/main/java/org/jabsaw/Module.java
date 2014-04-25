@@ -1,6 +1,9 @@
 package org.jabsaw;
 
-import java.lang.annotation.*;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * Defines a module, used to manage dependencies within a code base. This
@@ -114,4 +117,10 @@ public @interface Module {
 	 * relative to the current package.
 	 */
 	String[] excludePattern() default {};
+
+	/**
+	 * If true, the current package is included in the module (by adding the
+	 * <code> "current package".* </code> include pattern)
+	 */
+	boolean includePackage() default true;
 }

@@ -16,7 +16,7 @@ public class ClassParserTest {
 	private static class Foo {
 	}
 
-	@Module(exclude = Foo.class, excludePattern = "bar.*", exported = Foo.class, imported = Foo.class, include = Foo.class, includePattern = "bar.bar")
+	@Module(exclude = Foo.class, excludePattern = "bar.*", exported = Foo.class, imported = Foo.class, include = Foo.class, includePattern = "bar.bar", includePackage = false)
 	private static class TestModule {
 
 	}
@@ -43,6 +43,9 @@ public class ClassParserTest {
 				.contains(Foo.class.getName()));
 		Assert.assertTrue(module.getInclusionPatterns().toString()
 				.contains("bar.bar"));
+
+		Assert.assertFalse(module.getInclusionPatterns().toString()
+				.contains(".*"));
 	}
 
 	private @interface TestNestedAnnotationDirect {

@@ -196,57 +196,20 @@ public class ClassParser {
 	public class ModuleAnnotationVisitor extends AnnotationVisitor {
 
 		ModuleModel module;
+		private boolean includePackage = true;
 
 		public ModuleAnnotationVisitor(String enclosingClass) {
 			super(Opcodes.ASM5);
 			module = new ModuleModel(project, enclosingClass);
-			module.addInclusionPattern(new ClassPattern(module.getPackage(),
-					".*"));
+
 		}
 
 		@Override
 		public void visit(String name, Object value) {
-			if ("imported".equals(name)) {
-				for (Type t : (Type[]) value) {
-					module.addImportedModuleName(t.getClassName());
-				}
+			if ("includePackage".equals(name)) {
+				includePackage = (boolean) value;
 			}
 
-			if ("exported".equals(name)) {
-				for (Type t : (Type[]) value) {
-					module.addExportedModuleName(t.getClassName());
-				}
-			}
-
-			if ("include".equals(name)) {
-				for (Type t : (Type[]) value) {
-					module.addInclusionPattern(new ClassPattern(module
-							.getPackage(), t.getClassName()));
-				}
-			}
-
-			if ("includePattern".equals(name)) {
-				for (String s : (String[]) value) {
-
-					module.addInclusionPattern(new ClassPattern(module
-							.getPackage(), s));
-				}
-			}
-
-			if ("exclude".equals(name)) {
-				for (Type t : (Type[]) value) {
-					module.addExclusionPattern(new ClassPattern(module
-							.getPackage(), t.getClassName()));
-				}
-			}
-
-			if ("excludePattern".equals(name)) {
-				String[] imported = (String[]) value;
-				for (String s : imported) {
-					module.addExclusionPattern(new ClassPattern(module
-							.getPackage(), s));
-				}
-			}
 		}
 
 		@Override
@@ -254,6 +217,13 @@ public class ClassParser {
 			return new ModuleAnnotationArrayVisitor(module, name);
 		}
 
+		@Override
+		public void visitEnd() {
+			if (includePackage) {
+				module.addInclusionPattern(new ClassPattern(
+						module.getPackage(), ".*"));
+			}
+		}
 	}
 
 	public class ModuleAnnotationArrayVisitor extends AnnotationVisitor {
@@ -335,7 +305,7 @@ public class ClassParser {
 		@Override
 		public void visitEnum(String name, String desc, String value) {
 			classModel
-					.addUsesClassName(Type.getObjectType(desc).getClassName());
+			.addUsesClassName(Type.getObjectType(desc).getClassName());
 		}
 	}
 

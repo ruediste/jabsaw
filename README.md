@@ -3,19 +3,87 @@ JabSaw
 
 Lightweigth compile time module system, aimed at package dependency organization. 
 
-Getting Started
----------------
+Motivation
+----------
+Keeping track of coupling is very helpful in reaching a sound software design. While
+this can be achieved by having a plan and being disciplined in adhering to it, tool
+support proves to be very helpful in detecting deviations from it.
+
+The most used tool in the java ecosystem is to use separate compilation units 
+(Eclipse projects, Maven artifacts, OSGi modules, ...). Unfortunately, this is practical for rather coarse
+grained units only.
+
+Then there are various tools like [Dependency Finder](http://depfind.sourceforge.net/) and
+[Class Cycle](http://classycle.sourceforge.net/index.html). They are mainly aimed at analysing
+dependencies after the software has been written. There are possibilities to express dependency
+rules, but they are described in a separate text file.
+
+Especially when writing infrastructure code (frameworks) expressing dependencies at a package level is desireable.
+This is the problem JabSaw is aimed at.
+
+JabSaw is designed specifically to express static package level dependencies. It does not contain a version scheme
+and neither has runtime components (like OSGi) nor a build/dependency resolution system (like Maven).
+
+Defining Modules
+----------------
+Modules are defined by annotating a class with the `org.jabsaw.Module` annotation. This class is called the representing
+class of the module. Representing classes are used instead of annotating the package in a `package-info.java` since this allows
+to easily express relationships between modules. Example:
+
+	import org.jabsaw.Module;
+  
+	@Module(imported = ApiModule.class )
+	public class ImplModule{}
+  
+This defines the ImplModule which depends on the ApiModule. We suggest naming the class `<module name>Module` and not using it
+for anything else. Then we put our package-level documentation in the javadoc of the module.
+
+By default, all classes in the package of the module representing class are included in the module. This can be changed using
+class name patterns or by directly including and excluding classes. See the javadoc for details.  
+
+Classes of a modules may only use classes which are accessible from the module. The following classes are accessible:
+* classes which are not in any module
+* classes of the module itself
+* classes of imported modules
+
+As shown above, imports are defined by listing them in the `import` element of the `@Module` annotation. Multiple
+modules are imported like this:
+
+	@Module(imported = {ModuleA.class, ModuleB.class, ...}) 
+
+In addition the the import mechanism there is also an export mechanism. If all clients of a module A will need module B, since 
+the classes of module B are used in the interface of module A, module A should export module B. This makes the classes of module B
+accessible to all modules which import module A. This mechanism is recursive. In the example above, if B exports a module C, clients of
+A will also be able to access C.
+
+
+Installation
+------------
 We are not yet on Maven Central, but installation is easy:
 	
 	git clone git@github.com:ruediste1/jabsaw.git
 	cd jabsaw
 	mvn install
 	
-	
-Maven Plugin
-------------
+This will install the artifacts into the local Maven repository.
 
-JabSaw comes with a maven plugin. Add
+### Accessing the API
+The api can be found in `jabsaw/api/target/jabsaw-api-<version>.jar`. When using Maven, add the following to your `pom.xml`:
+
+	...
+	<dependencies>
+		...
+		<dependency>
+			<groupId>org.jabsaw</groupId>
+			<artifactId>jabsaw-api</artifactId>
+			<version>1.0-SNAPSHOT</version>
+		</dependency>
+		...
+	</dependencies>
+	...
+	
+### Checking with the Maven Plugin
+JabSaw comes with a Maven plugin to check module dependencies. Add
 
 	...
 	<build>
@@ -25,6 +93,9 @@ JabSaw comes with a maven plugin. Add
 				<groupId>org.jabsaw</groupId>
 				<artifactId>jabsaw-maven-plugin</artifactId>
 				<version>1.0-SNAPSHOT</version>
+				<configuration>
+					...
+				</configuration>
 				<executions>
 					<execution>
 						<phase>process-classes</phase>
@@ -38,33 +109,47 @@ JabSaw comes with a maven plugin. Add
 		</plugins>
 	</build>
 	...
-	<dependencies>
-		<dependency>
-			<groupId>org.jabsaw</groupId>
-			<artifactId>jabsaw-api</artifactId>
-			<version>1.0-SNAPSHOT</version>
-		</dependency>
-		...
-	</dependencies>
 
-to your pom.xml. Then define your module by creating an empty class named after your module, and annotating it 
-with the @org.jabsaw.Module annotation. This annotation is used to define imported and exported modules. By
-default, all classes in the package of the module class are included in the module. This can be customized using
-inclusion and exclusion filters. Example:
+to your pom.xml. The documentation to the configuration parameters can be accessed via:
 
-	package com.test.impl;
-	import com.test.api.ApiModule;
-	import org.jabsaw.Module;
-  
-	@Module(exported = ApiModule.class)
-	public class ImplModule{}
-  
-This creates the ImplModule, which depends on the ApiModule, and exports it to it's clients. During the build,
-the plugin will check that the ImplModule will not depend on any class in another module than the ApiModule. For details see the JavaDoc of the Module annotation.
+	mvn jabsaw:help -Ddetail=true -Dgoal=check
+ 
+Currently, the following paramerters are available:
 
-Command Line Interface
-----------------------
-There is a command line interface in jabsaw-cli. All dependencies are packed within the jar file.
+	checkAllClassesInModule
+	  If true, all classes have to be in a module. 
+	  Default: false
+	
+	checkDepedencyCycles
+	  If true, the modules are checked for dependency cycles. 
+	  Default: true.
+	
+	checkModuleBoundaries
+	  If true, check that all classes respect module boundaries. 
+	  Default: true
+	
+	createModuleGraphvizFile
+	  If true, generate a module graph Graphviz file. 
+	  Default: false
+	
+	moduleGraphFormat
+	  Set the output format of the module graph. If set, the dot command will be
+	  executed. Implies createModuleGraphvizFile. Examples: ps, png, gif, svg.
+	  Default: empty
+	
+	moduleGraphIncludesClasses
+	  If true, the generated module graph includes the individual classes.
+	  Default: false
+
+By setting the moduleGraphFormat parameter, a graph of the module dependencies is created in the `target/` directory. 
+This requires graphviz to be installed (the `dot` program). Under Ubuntu simply type
+
+	sudo apt-get install graphviz
+
+
+### Checking with the command Line Interface
+If you are not using Maven, you can use the command line interface. All dependencies are packed within the `jabsaw/cli/target/jabsaw-cli-<version>.jar file.
 
 	java -jar jabsaw-cli-1.0-SNAPSHOT.jar .
-	
+
+When no parameters are given, a help screen will be shown.

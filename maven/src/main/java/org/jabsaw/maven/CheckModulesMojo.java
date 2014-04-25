@@ -1,6 +1,7 @@
 package org.jabsaw.maven;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 
@@ -12,6 +13,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.jabsaw.impl.ClassParser;
 import org.jabsaw.impl.ClassParser.DirectoryParsingCallback;
+import org.jabsaw.impl.GraphizPrinter;
 import org.jabsaw.impl.model.ProjectModel;
 
 /**
@@ -20,9 +22,11 @@ import org.jabsaw.impl.model.ProjectModel;
 @Mojo(name = "check", defaultPhase = LifecyclePhase.PROCESS_CLASSES)
 public class CheckModulesMojo extends AbstractMojo {
 
-	@Parameter(defaultValue = "${project.build.outputDirectory}", property = "outputDir", required = true, readonly = true)
+	@Parameter(defaultValue = "${project.build.outputDirectory}", required = true, readonly = true)
 	private File outputDirectory;
 
+	@Parameter(defaultValue = "${project.build.directory}", required = true, readonly = true)
+	private File targetDirectory;
 	/**
 	 * If true, the modules are checked for dependency cycles. Default: true.
 	 */
@@ -35,6 +39,33 @@ public class CheckModulesMojo extends AbstractMojo {
 	@Parameter(defaultValue = "false", required = true)
 	private boolean checkAllClassesInModule;
 
+	/**
+	 * If true, check that all classes respect module boundaries. Default: true
+	 */
+	@Parameter(defaultValue = "true", required = true)
+	private boolean checkModuleBoundaries;
+
+	/**
+	 * If true, generate a module graph Graphviz file. Default: false
+	 */
+	@Parameter(defaultValue = "false", required = true)
+	private boolean createModuleGraphvizFile;
+
+	/**
+	 * If true, the generated module graph includes the individual classes.
+	 * Default: false
+	 */
+	@Parameter(defaultValue = "false", required = true)
+	private boolean moduleGraphIncludesClasses = false;
+
+	/**
+	 * Set the output format of the module graph. If set, the dot command will
+	 * be executed. Implies createModuleGraphvizFile. Examples: ps, png, gif,
+	 * svg. Default: empty
+	 */
+	@Parameter(defaultValue = "", required = true)
+	private String moduleGraphFormat;
+
 	@Override
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		final ArrayList<String> errors = new ArrayList<>();
@@ -44,16 +75,16 @@ public class CheckModulesMojo extends AbstractMojo {
 		parser.parseDirectory(errors, outputDirectory.toPath(),
 				new DirectoryParsingCallback() {
 
-					@Override
-					public void parsingFile(Path file) {
-						getLog().debug("parsing " + file.toString());
-					}
+			@Override
+			public void parsingFile(Path file) {
+				getLog().debug("parsing " + file.toString());
+			}
 
-					@Override
-					public void error(String error) {
-						errors.add(error);
-					}
-				});
+			@Override
+			public void error(String error) {
+				errors.add(error);
+			}
+		});
 
 		ProjectModel project = parser.getProject();
 		project.resolveDependencies();
@@ -70,8 +101,10 @@ public class CheckModulesMojo extends AbstractMojo {
 			project.checkAllClassesInModule(errors);
 		}
 
-		getLog().info("Checking class dependencies ...");
-		project.checkClassAccessibility(errors);
+		if (checkModuleBoundaries) {
+			getLog().info("Checking class dependencies ...");
+			project.checkClassAccessibility(errors);
+		}
 
 		if (!errors.isEmpty()) {
 			getLog().error("Errors while checking modules:");
@@ -80,6 +113,33 @@ public class CheckModulesMojo extends AbstractMojo {
 			}
 			throw new MojoFailureException(
 					"Error while checking module dependencies. See log for details");
+		}
+
+		if (createModuleGraphvizFile || !moduleGraphFormat.isEmpty()) {
+			GraphizPrinter printer = new GraphizPrinter();
+			try {
+				printer.print(project, new File(targetDirectory,
+						"moduleGraph.dot"), moduleGraphIncludesClasses);
+			} catch (IOException e) {
+				throw new RuntimeException(
+						"Error while generating module graph .dot file", e);
+			}
+		}
+
+		if (!moduleGraphFormat.isEmpty()) {
+			Process process;
+			try {
+				process = new ProcessBuilder(
+						moduleGraphIncludesClasses ? "sfdp" : "dot", "-T",
+						moduleGraphFormat, "-o", "moduleGraph."
+								+ moduleGraphFormat, "moduleGraph.dot")
+						.inheritIO().directory(targetDirectory).start();
+				process.waitFor();
+			} catch (Exception e) {
+				throw new RuntimeException(
+						"Error while running the dot command to produce a module graph",
+						e);
+			}
 		}
 		getLog().info("Modules checked");
 	}

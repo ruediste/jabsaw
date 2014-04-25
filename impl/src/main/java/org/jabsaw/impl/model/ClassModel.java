@@ -170,4 +170,9 @@ public class ClassModel implements ModelNode {
 			ClassModel.getAllClassDependencies(result, clazz);
 		}
 	}
+
+	public String getSimpleName() {
+		String[] parts = qualifiedName.split("\\.");
+		return parts[parts.length - 1];
+	}
 }

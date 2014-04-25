@@ -28,14 +28,12 @@ public class ModuleModel implements ModelNode {
 	final Set<String> importedModuleNames = new HashSet<>();
 
 	/**
-	 * Modules directly exported by this module.
+	 * @see #getExportedModules()
 	 */
 	final Set<ModuleModel> exportedModules = new HashSet<>();
 
 	/**
-	 * Modules directly imported by this module. Only classes from these modules
-	 * are accessible by this module. The modules in {@link #exportedModules}
-	 * are not accessible unless included in this set.
+	 * @see #getImportedModules()
 	 */
 	final Set<ModuleModel> importedModules = new HashSet<>();
 
@@ -76,6 +74,11 @@ public class ModuleModel implements ModelNode {
 
 	public String getQualifiedNameOfRepresentingClass() {
 		return qualifiedNameOfRepresentingClass;
+	}
+
+	public String getSimpleName() {
+		String[] parts = qualifiedNameOfRepresentingClass.split("\\.");
+		return parts[parts.length - 1];
 	}
 
 	public Set<ClassModel> getClasses() {
@@ -229,15 +232,44 @@ public class ModuleModel implements ModelNode {
 	}
 
 	/**
+	 * Modules directly imported by this module.
+	 */
+	public Set<ModuleModel> getImportedModules() {
+		return Collections.unmodifiableSet(importedModules);
+	}
+
+	/**
+	 * Get the union of {@link #getImportedModules()} and
+	 * {@link #getExportedModules()}
+	 */
+	public Set<ModuleModel> getReferencedModules() {
+		Set<ModuleModel> set = new HashSet<>();
+		set.addAll(exportedModules);
+		set.addAll(importedModules);
+		return set;
+	}
+
+	/**
+	 * Modules directly exported by this module.
+	 */
+	public Set<ModuleModel> getExportedModules() {
+		return Collections.unmodifiableSet(exportedModules);
+	}
+
+	/**
 	 * All classes this module depends upon. Includes all transitive
 	 * dependencies of the classes in this module, even if the dependencies are
 	 * not in a module themselves
 	 */
 	public Set<ClassModel> getAllClassDependencies() {
 		HashSet<ClassModel> result = new HashSet<>();
-		for (ClassModel clazz : classes) {
-			ClassModel.getAllClassDependencies(result, clazz);
+
+		for (ModuleModel module : allModuleDependencies) {
+			for (ClassModel clazz : module.classes) {
+				ClassModel.getAllClassDependencies(result, clazz);
+			}
 		}
+
 		return result;
 	}
 }

@@ -110,12 +110,14 @@ public class Modules {
 	}
 
 	/**
-	 * Return the names of all classes the given module depends on, including
-	 * transitive dependencies, even if they are not part of a module.
+	 * Return all classes the given module depends on, including transitive
+	 * dependencies, even if they are not part of a module.
 	 */
 	public static Class<?>[] getAllRequiredClasses(Class<?> module) {
 		HashSet<Class<?>> result = new HashSet<>();
 		ClassLoader classLoader = Modules.class.getClassLoader();
+
+		// follow dependencies by classes
 		for (ClassModel info : Modules.getProjectModel()
 				.getModule(module.getName()).getAllClassDependencies()) {
 			try {
@@ -124,7 +126,9 @@ public class Modules {
 				Modules.logger.error(
 						"Error loading class " + info.getQualifiedName(), e);
 			}
+
 		}
+
 		return result.toArray(new Class<?>[] {});
 	}
 

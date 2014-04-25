@@ -99,7 +99,7 @@ public class ProjectModel {
 			}
 		}
 
-		// remvoe inner classes
+		// remove inner classes
 		for (ClassModel classModel : new ArrayList<>(classes.values())) {
 			if (classModel.outerClass != null) {
 				// merge class with toplevel class
@@ -176,7 +176,7 @@ public class ProjectModel {
 		TransitiveClosure.INSTANCE.closeSimpleDirectedGraph(g);
 
 		for (ModuleModel module : modules.values()) {
-			module.allExportedModules.add(module);
+			module.allModuleDependencies.add(module);
 			for (Edge e : g.outgoingEdgesOf(module)) {
 				module.allModuleDependencies.add(g.getEdgeTarget(e));
 			}
@@ -214,11 +214,7 @@ public class ProjectModel {
 			module.allAccessibleModules.add(module);
 
 			// add imported and exported modules, including transitive exports
-			Set<ModuleModel> set = new HashSet<>();
-			set.addAll(module.exportedModules);
-			set.addAll(module.importedModules);
-
-			for (ModuleModel imported : set) {
+			for (ModuleModel imported : module.getReferencedModules()) {
 				module.allAccessibleModules.addAll(imported.allExportedModules);
 			}
 		}

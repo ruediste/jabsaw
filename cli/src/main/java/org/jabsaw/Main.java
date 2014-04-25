@@ -8,6 +8,7 @@ import java.util.List;
 
 import org.jabsaw.impl.ClassParser;
 import org.jabsaw.impl.ClassParser.DirectoryParsingCallback;
+import org.jabsaw.impl.GraphizPrinter;
 import org.jabsaw.impl.model.ProjectModel;
 import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.CmdLineException;
@@ -20,10 +21,22 @@ public class Main {
 	private boolean checkDepedencyCycles = true;
 
 	@Option(name = "-cm", usage = "check that all classes are in a module. default: false")
-	private boolean checkAllClassesInModule;
+	private boolean checkAllClassesInModule = false;
+
+	@Option(name = "-cb", usage = "check that all classes respect the module boundaries. default: true")
+	private boolean checkClassAccessibility = true;
+
+	@Option(name = "-graphiz", usage = "If true, generate a module graph Graphviz file. Default: false")
+	private boolean createModuleGraphvizFile = false;
+
+	@Option(name = "-graphvizClasses", usage = "If true, the generated module graph includes the individual classes. Default: false")
+	private boolean moduleGraphIncludesClasses = false;
+
+	@Option(name = "-graphvizFormat", usage = "Set the output format of the module graph. If set, the dot command will be executed. Implies -graphviz. Examples: ps, png, gif, svg. Default: empty")
+	private String moduleGraphFormat = "";
 
 	@Option(name = "-v", usage = "verbose output. default: false")
-	private boolean verbose;
+	private boolean verbose = false;
 
 	@Argument
 	List<File> inputDirectories = new ArrayList<>();
@@ -75,8 +88,10 @@ public class Main {
 			project.checkAllClassesInModule(errors);
 		}
 
-		System.out.println("Checking class dependencies ...");
-		project.checkClassAccessibility(errors);
+		if (checkClassAccessibility) {
+			System.out.println("Checking class dependencies ...");
+			project.checkClassAccessibility(errors);
+		}
 
 		if (!errors.isEmpty()) {
 			System.err.println("Errors while checking modules:");
@@ -85,6 +100,34 @@ public class Main {
 			}
 			System.exit(1);
 		}
+
+		if (createModuleGraphvizFile) {
+			GraphizPrinter printer = new GraphizPrinter();
+			try {
+				printer.print(project, new File("moduleGraph.dot"),
+						moduleGraphIncludesClasses);
+			} catch (IOException e) {
+				throw new RuntimeException(
+						"Error while generating module graph .dot file", e);
+			}
+		}
+
+		if (!moduleGraphFormat.isEmpty()) {
+			Process process;
+			try {
+				process = new ProcessBuilder(
+						moduleGraphIncludesClasses ? "sfdp" : "dot", "-T",
+						moduleGraphFormat, "-o", "moduleGraph."
+								+ moduleGraphFormat, "moduleGraph.dot")
+						.inheritIO().start();
+				process.waitFor();
+			} catch (Exception e) {
+				throw new RuntimeException(
+						"Error while running the dot command to produce a module graph",
+						e);
+			}
+		}
+
 		System.out.println("Modules checked");
 
 	}
@@ -120,6 +163,11 @@ public class Main {
 			System.err.println();
 
 			System.exit(1);
+		}
+
+		// handle option implies
+		if (!moduleGraphFormat.isEmpty()) {
+			createModuleGraphvizFile = true;
 		}
 	}
 }
