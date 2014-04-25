@@ -189,3 +189,28 @@ required classes of the `UrlMappingModule`:
 	ShrinkWrap
 		.create(WebArchive.class)
 		.addClasses(Modules.getAllRequiredClasses(UrlMappingModule.class));
+
+License
+-------
+[Apache License, Version 2.0](LICENSE.txt)
+
+Versioning
+----------
+We use a single major/minor versioning. Updates of the minor version do not result
+in breaking changes, updates of the major version can.
+
+
+### Creating Releases
+During development, the version is always set to the next version with the -SNAPSHOT suffix.
+A release can be perfomed with
+
+	mvn release:clean release:prepare
+	
+by answering the prompts for versions and tags, followed by
+	
+	mvn release:perform
+
+Finally, update the `settings.xml` file to contain your credentials and put the release 
+to the central repository by
+
+	mvn nexus-staging:release

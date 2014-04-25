@@ -4,8 +4,7 @@
 
 	<artifactId>jabsaw-api</artifactId>
 	<name>JabSaw API</name><packaging>jar</packaging>
-
-	<url>http://maven.apache.org</url>
+	<description> API to define modules for JabSaw</description>
 
 	<parent>
 		<groupId>org.jabsaw</groupId>

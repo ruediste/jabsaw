@@ -5,7 +5,7 @@
 	<artifactId>jabsaw-maven-plugin</artifactId>
 	<packaging>maven-plugin</packaging>
 	<name>JabSaw Maven Plugin</name>
-	<url>https://github.com/ruediste1/jabsaw</url>
+	<description> The Maven Plugin used to check the JabSaw module dependencies</description>
 
 	<parent>
 		<groupId>org.jabsaw</groupId>

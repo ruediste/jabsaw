@@ -4,8 +4,8 @@
 
 	<artifactId>jabsaw-util</artifactId>
 	<name>Jabsaw Utilities</name>
+	<description> Utility Interface Classes to use the JabSaw system from other projects, mainly from Unit Tests</description>
 	<packaging>jar</packaging>
-	<url>http://maven.apache.org</url>
 
 	<parent>
 		<groupId>org.jabsaw</groupId>

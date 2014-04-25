@@ -5,7 +5,7 @@
 	<artifactId>jabsaw-impl</artifactId>
 	<name>JabSaw Implementation</name>
 	<packaging>jar</packaging>
-	<url>http://maven.apache.org</url>
+	<description>Shared implementation of the JabSaw module system</description>
 
 	<parent>
 		<groupId>org.jabsaw</groupId>

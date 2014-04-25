@@ -4,8 +4,8 @@
 
 	<artifactId>jabsaw-cli</artifactId>
 	<name>JabSaw Command Line Interface</name>
+	<description> Comman Line Interface to check the JabSaw module dependecies</description>
 	<packaging>jar</packaging>
-	<url>https://github.com/ruediste1/jabsaw</url>
 
 	<parent>
 		<groupId>org.jabsaw</groupId>
