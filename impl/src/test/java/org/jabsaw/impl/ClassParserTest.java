@@ -16,7 +16,7 @@ public class ClassParserTest {
 	private static class Foo {
 	}
 
-	@Module(exclude = Foo.class, excludePattern = "bar.*", exported = Foo.class, imported = Foo.class, include = Foo.class, includePattern = "bar.bar", includePackage = false)
+	@Module(name = "Test1", description = "Desc", exclude = Foo.class, excludePattern = "bar.*", exported = Foo.class, imported = Foo.class, include = Foo.class, includePattern = "bar.bar", includePackage = false)
 	private static class TestModule {
 
 	}
@@ -29,6 +29,9 @@ public class ClassParserTest {
 		parser.parse(reader);
 		ModuleModel module = parser.getProject().getModule(
 				TestModule.class.getName());
+
+		Assert.assertEquals("Test1", module.getName());
+		Assert.assertEquals("Desc", module.getDescription());
 		Assert.assertEquals(TestModule.class.getName(),
 				module.getQualifiedNameOfRepresentingClass());
 		Assert.assertTrue(module.getExclusionPatterns().toString()

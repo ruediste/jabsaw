@@ -29,6 +29,9 @@ public class Main {
 	@Option(name = "-graphiz", usage = "If true, generate a module graph Graphviz file. Default: false")
 	private boolean createModuleGraphvizFile = false;
 
+	@Option(name = "-n", usage = "If true, modules are typically identified in strings by their name instead of the fully qualified name of the representing class. Default: false")
+	private boolean useModuleNames = false;
+
 	@Option(name = "-graphvizClasses", usage = "If true, the generated module graph includes the individual classes. Default: false")
 	private boolean moduleGraphIncludesClasses = false;
 
@@ -52,6 +55,9 @@ public class Main {
 		System.out.println("Checking Modules ...");
 
 		final ClassParser parser = new ClassParser();
+		ProjectModel project = parser.getProject();
+		project.setUseModuleNames(useModuleNames);
+
 		DirectoryParsingCallback callback = new DirectoryParsingCallback() {
 
 			@Override
@@ -71,7 +77,6 @@ public class Main {
 			parser.parseDirectory(errors, f.toPath(), callback);
 		}
 
-		ProjectModel project = parser.getProject();
 		project.resolveDependencies();
 
 		if (verbose) {
@@ -117,9 +122,9 @@ public class Main {
 			try {
 				process = new ProcessBuilder(
 						moduleGraphIncludesClasses ? "sfdp" : "dot", "-T",
-						moduleGraphFormat, "-o", "moduleGraph."
-								+ moduleGraphFormat, "moduleGraph.dot")
-						.inheritIO().start();
+								moduleGraphFormat, "-o", "moduleGraph."
+										+ moduleGraphFormat, "moduleGraph.dot")
+				.inheritIO().start();
 				process.waitFor();
 			} catch (Exception e) {
 				throw new RuntimeException(
@@ -157,7 +162,7 @@ public class Main {
 			// an error message.
 			System.err.println(e.getMessage());
 			System.err
-					.println("java -jar ... org.jabsaw.Main [options...] dirs...");
+			.println("java -jar ... org.jabsaw.Main [options...] dirs...");
 			// print the list of available options
 			parser.printUsage(System.err);
 			System.err.println();

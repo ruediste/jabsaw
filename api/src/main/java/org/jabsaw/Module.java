@@ -80,6 +80,18 @@ import java.lang.annotation.Target;
 public @interface Module {
 
 	/**
+	 * The name of this module. Defaults to the Simple name of the representing
+	 * class, with an eventual "Module" suffix removed.
+	 */
+	String name() default "";
+
+	/**
+	 * A short description of this module. Shown for example as hover text in
+	 * the module graph.
+	 */
+	String description() default "";
+
+	/**
 	 * List of modules this module imports. These modules are not exported.
 	 * Classes of this module may only use classes from modules this module
 	 * imports on.

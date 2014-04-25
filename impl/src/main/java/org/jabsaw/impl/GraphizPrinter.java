@@ -42,7 +42,7 @@ public class GraphizPrinter {
 	public void print(ProjectModel project, Writer w, boolean includeClasses) {
 		PrintWriter out = new PrintWriter(w);
 
-		out.println("digraph G {");
+		out.println("digraph ModuleGraph {");
 		if (includeClasses) {
 			out.println("ratio=1;");
 		} else {
@@ -57,9 +57,14 @@ public class GraphizPrinter {
 				out.printf("subgraph cluster%d {\n", i++);
 			}
 
-			out.printf("  \"MODULE$%s\" [label=\"%s\", shape=box%s];\n", module
-					.getQualifiedNameOfRepresentingClass(), module
-					.getSimpleName(), includeClasses ? ", color=green" : "");
+			out.printf(
+					"  \"MODULE$%s\" [label=\"%s\", shape=box, tooltip=\"%s\"%s];\n",
+					module.getQualifiedNameOfRepresentingClass(),
+					module.getIdentification(),
+					(module.getDescription() != null && !module
+					.getDescription().isEmpty()) ? module
+							.getDescription() : "No Description",
+							includeClasses ? ", color=green" : "");
 
 			if (includeClasses) {
 				for (ClassModel clazz : module.getClasses()) {

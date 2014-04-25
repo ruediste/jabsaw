@@ -9,6 +9,8 @@ import org.jabsaw.impl.pattern.ClassPattern;
 public class ModuleModel implements ModelNode {
 	private final ProjectModel projectModel;
 	private final String qualifiedNameOfRepresentingClass;
+	String name;
+	String description;
 	final Set<ClassModel> classes = new HashSet<ClassModel>();
 	final Set<ClassPattern> inclusionPatterns = new HashSet<>();
 	final Set<ClassPattern> exclusionPatterns = new HashSet<>();
@@ -66,6 +68,11 @@ public class ModuleModel implements ModelNode {
 		this.projectModel = projectModel;
 		this.qualifiedNameOfRepresentingClass = qualifiedNameOfRepresentingClass;
 		projectModel.addModule(this);
+		String[] parts = qualifiedNameOfRepresentingClass.split("\\.");
+		name = parts[parts.length - 1];
+		if (name.endsWith("Module")) {
+			name = name.substring(0, name.length() - "Module".length());
+		}
 	}
 
 	public ProjectModel getProjectModel() {
@@ -76,9 +83,8 @@ public class ModuleModel implements ModelNode {
 		return qualifiedNameOfRepresentingClass;
 	}
 
-	public String getSimpleName() {
-		String[] parts = qualifiedNameOfRepresentingClass.split("\\.");
-		return parts[parts.length - 1];
+	public String getName() {
+		return name;
 	}
 
 	public Set<ClassModel> getClasses() {
@@ -98,8 +104,7 @@ public class ModuleModel implements ModelNode {
 		for (String name : importedModuleNames) {
 			ModuleModel module = projectModel.getModule(name);
 			if (module == null) {
-				throw new RuntimeException("Module "
-						+ qualifiedNameOfRepresentingClass
+				throw new RuntimeException("Module " + getIdentification()
 						+ ": could not find imported module " + name);
 			}
 			importedModules.add(module);
@@ -169,7 +174,7 @@ public class ModuleModel implements ModelNode {
 
 	@Override
 	public String toString() {
-		return qualifiedNameOfRepresentingClass;
+		return getIdentification();
 	}
 
 	public boolean isAccessible(ClassModel clazz) {
@@ -183,6 +188,8 @@ public class ModuleModel implements ModelNode {
 	public String details() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("Module " + qualifiedNameOfRepresentingClass + "\n");
+		sb.append("Name " + name + "\n");
+		sb.append("Description " + description + "\n");
 		sb.append("imported: " + importedModules + "\n");
 		sb.append("exported: " + exportedModules + "\n");
 		sb.append("all accessible: " + allAccessibleModules + "\n");
@@ -271,5 +278,33 @@ public class ModuleModel implements ModelNode {
 		}
 
 		return result;
+	}
+
+	/**
+	 * Return the description of this module, or null if none is set.
+	 */
+	public String getDescription() {
+		return description;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	/**
+	 * Return the identification string of this module, either the
+	 * {@link #qualifiedNameOfRepresentingClass} or {@link #name}, depending on
+	 * {@link ProjectModel#isUseModuleNames()}
+	 */
+	public String getIdentification() {
+		if (projectModel.isUseModuleNames()) {
+			return name;
+		} else {
+			return qualifiedNameOfRepresentingClass;
+		}
 	}
 }

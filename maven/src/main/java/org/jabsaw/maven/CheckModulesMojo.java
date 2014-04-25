@@ -46,6 +46,14 @@ public class CheckModulesMojo extends AbstractMojo {
 	private boolean checkModuleBoundaries;
 
 	/**
+	 * If true, modules are typically identified in strings by their name
+	 * instead of the fully qualified name of the representing class. Default:
+	 * false
+	 */
+	@Parameter(defaultValue = "false", required = true)
+	private boolean useModuleNames;
+
+	/**
 	 * If true, generate a module graph Graphviz file. Default: false
 	 */
 	@Parameter(defaultValue = "false", required = true)
@@ -72,21 +80,23 @@ public class CheckModulesMojo extends AbstractMojo {
 		getLog().info("Checking Modules ...");
 
 		final ClassParser parser = new ClassParser();
+		ProjectModel project = parser.getProject();
+		project.setUseModuleNames(useModuleNames);
+
 		parser.parseDirectory(errors, outputDirectory.toPath(),
 				new DirectoryParsingCallback() {
 
-			@Override
-			public void parsingFile(Path file) {
-				getLog().debug("parsing " + file.toString());
-			}
+					@Override
+					public void parsingFile(Path file) {
+						getLog().debug("parsing " + file.toString());
+					}
 
-			@Override
-			public void error(String error) {
-				errors.add(error);
-			}
-		});
+					@Override
+					public void error(String error) {
+						errors.add(error);
+					}
+				});
 
-		ProjectModel project = parser.getProject();
 		project.resolveDependencies();
 
 		getLog().debug("Project Details:\n" + project.details());
@@ -106,15 +116,6 @@ public class CheckModulesMojo extends AbstractMojo {
 			project.checkClassAccessibility(errors);
 		}
 
-		if (!errors.isEmpty()) {
-			getLog().error("Errors while checking modules:");
-			for (String s : errors) {
-				getLog().error(s);
-			}
-			throw new MojoFailureException(
-					"Error while checking module dependencies. See log for details");
-		}
-
 		if (createModuleGraphvizFile || !moduleGraphFormat.isEmpty()) {
 			GraphizPrinter printer = new GraphizPrinter();
 			try {
@@ -131,9 +132,9 @@ public class CheckModulesMojo extends AbstractMojo {
 			try {
 				process = new ProcessBuilder(
 						moduleGraphIncludesClasses ? "sfdp" : "dot", "-T",
-						moduleGraphFormat, "-o", "moduleGraph."
-								+ moduleGraphFormat, "moduleGraph.dot")
-						.inheritIO().directory(targetDirectory).start();
+								moduleGraphFormat, "-o", "moduleGraph."
+										+ moduleGraphFormat, "moduleGraph.dot")
+				.inheritIO().directory(targetDirectory).start();
 				process.waitFor();
 			} catch (Exception e) {
 				throw new RuntimeException(
@@ -141,6 +142,16 @@ public class CheckModulesMojo extends AbstractMojo {
 						e);
 			}
 		}
+
+		if (!errors.isEmpty()) {
+			getLog().error("Errors while checking modules:");
+			for (String s : errors) {
+				getLog().error(s);
+			}
+			throw new MojoFailureException(
+					"Error while checking module dependencies. See log for details");
+		}
+
 		getLog().info("Modules checked");
 	}
 

@@ -30,6 +30,11 @@ public class ProjectModel {
 	 */
 	final private HashMap<String, ModuleModel> modules = new HashMap<>();
 
+	/**
+	 * @see #isUseModuleNames()
+	 */
+	private boolean useModuleNames;
+
 	public Map<String, ClassModel> getClasses() {
 		return Collections.unmodifiableMap(classes);
 	}
@@ -104,7 +109,7 @@ public class ProjectModel {
 			if (classModel.outerClass != null) {
 				// merge class with toplevel class
 				classModel.getToplevelClass().usesClasses
-				.addAll(classModel.usesClasses);
+						.addAll(classModel.usesClasses);
 				classes.remove(classModel.getQualifiedName());
 			}
 		}
@@ -263,6 +268,18 @@ public class ProjectModel {
 
 	public boolean isDependenciesResolved() {
 		return dependenciesResolved;
+	}
+
+	/**
+	 * If set to true, modules are typically identified in strings by their name
+	 * instead of the fully qualified name of the representing class.
+	 */
+	public boolean isUseModuleNames() {
+		return useModuleNames;
+	}
+
+	public void setUseModuleNames(boolean useModuleNames) {
+		this.useModuleNames = useModuleNames;
 	}
 
 }

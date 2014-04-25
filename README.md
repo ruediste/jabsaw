@@ -32,11 +32,15 @@ to easily express relationships between modules. Example:
 
 	import org.jabsaw.Module;
   
-	@Module(imported = ApiModule.class )
+	@Module(desription = "Implementation of our wonderful API", imported = ApiModule.class )
 	public class ImplModule{}
   
 This defines the ImplModule which depends on the ApiModule. We suggest naming the class `<module name>Module` and not using it
 for anything else. Then we put our package-level documentation in the javadoc of the module.
+
+Modules can be identified either by their name or by the fully qualified name of their representing class. This is defined
+when using the JabSaw tools (see below). The name is by default derived from the simple name of the representing class, dropping
+an eventual `Module` suffix, or can be set explicitely using the `name` element of the annotation.
 
 By default, all classes in the package of the module representing class are included in the module. This can be changed using
 class name patterns or by directly including and excluding classes. See the javadoc for details.  
@@ -110,7 +114,10 @@ JabSaw comes with a Maven plugin to check module dependencies. Add
 	</build>
 	...
 
-to your pom.xml. The documentation to the configuration parameters can be accessed via:
+to your pom.xml. Please note that the plugin is executed during the `process-classes` phase, which comes immediately after the compile phase. Thus a `mvn compile`
+will not check the module dependencies. Use `mvn process-classes` instead. 
+
+The documentation to the configuration parameters can be accessed via:
 
 	mvn jabsaw:help -Ddetail=true -Dgoal=check
  
@@ -127,6 +134,11 @@ Currently, the following paramerters are available:
 	checkModuleBoundaries
 	  If true, check that all classes respect module boundaries. 
 	  Default: true
+	  
+	useModuleNames
+	   If true, modules are typically identified in strings by their name instead 
+	   of the fully qualified name of the representing class. 
+	   Default: false
 	
 	createModuleGraphvizFile
 	  If true, generate a module graph Graphviz file. 

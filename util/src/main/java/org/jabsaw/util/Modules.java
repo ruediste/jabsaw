@@ -30,25 +30,33 @@ public class Modules {
 	private static class Config {
 
 		public final boolean includeJars;
+		public final boolean useModuleNames;
 		public final String excludePath;
 
 		public Config(Properties properties) {
-			String s = properties.getProperty("includeJars");
+			includeJars = parseBoolean(properties, "includeJars", true);
+			useModuleNames = parseBoolean(properties, "useModuleNames", false);
+			excludePath = properties.getProperty("excludePath");
+
+		}
+
+		private boolean parseBoolean(Properties properties,
+				String propertyName, boolean defaultValue) throws Error {
+			boolean value;
+			String s = properties.getProperty(propertyName);
 			if (s != null) {
 				if ("true".equalsIgnoreCase(s)) {
-					includeJars = true;
+					value = defaultValue;
 				} else if ("false".equalsIgnoreCase(s)) {
-					includeJars = false;
+					value = false;
 				} else {
-					throw new Error("includeJars must be true or false");
+					throw new Error(propertyName + " must be true or false");
 				}
 
 			} else {
-				includeJars = true;
+				value = defaultValue;
 			}
-
-			excludePath = properties.getProperty("excludePath");
-
+			return value;
 		}
 
 	}
@@ -81,6 +89,8 @@ public class Modules {
 							.from(ClassPath.from(classLoader).getResources())
 							.filter(ClassInfo.class).toList();
 					ClassParser parser = new ClassParser();
+					parser.getProject()
+							.setUseModuleNames(config.useModuleNames);
 					for (ClassInfo info : classes) {
 						if (!config.includeJars) {
 							if ("jar".equals(info.url().getProtocol())) {

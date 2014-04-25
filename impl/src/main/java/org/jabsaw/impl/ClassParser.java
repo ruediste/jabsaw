@@ -209,6 +209,19 @@ public class ClassParser {
 			if ("includePackage".equals(name)) {
 				includePackage = (boolean) value;
 			}
+			if ("name".equals(name)) {
+				String s = (String) value;
+				if (s != null && !s.isEmpty()) {
+					module.setName(s);
+				}
+			}
+
+			if ("description".equals(name)) {
+				String s = (String) value;
+				if (s != null && !s.isEmpty()) {
+					module.setDescription(s);
+				}
+			}
 
 		}
 
@@ -412,6 +425,17 @@ public class ClassParser {
 			return new ParsingAnnotationVisitor(classModel);
 		}
 
+		@Override
+		public void visitLdcInsn(Object cst) {
+			if (cst instanceof Type) {
+				Type type = (Type) cst;
+				if (type.getSort() == Type.OBJECT) {
+					handleType(classModel, type);
+				} else if (type.getSort() == Type.ARRAY) {
+					handleType(classModel, type.getElementType());
+				}
+			}
+		}
 	}
 
 	public void handleClassOrMethodSignature(ClassModel classModel,
