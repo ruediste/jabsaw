@@ -63,7 +63,9 @@ A will also be able to access C.
 
 Installation
 ------------
-We are not yet on Maven Central, but installation is easy:
+The artefacts can be found on Maven Central under the `org.jabsaw` group id.
+
+If desired, local installation is easy:
 	
 	git clone git@github.com:ruediste1/jabsaw.git
 	cd jabsaw
@@ -80,7 +82,7 @@ The api can be found in `jabsaw/api/target/jabsaw-api-<version>.jar`. When using
 		<dependency>
 			<groupId>org.jabsaw</groupId>
 			<artifactId>jabsaw-api</artifactId>
-			<version>1.0-SNAPSHOT</version>
+			<version>1.0</version>
 		</dependency>
 		...
 	</dependencies>
@@ -96,7 +98,7 @@ JabSaw comes with a Maven plugin to check module dependencies. Add
 			<plugin>
 				<groupId>org.jabsaw</groupId>
 				<artifactId>jabsaw-maven-plugin</artifactId>
-				<version>1.0-SNAPSHOT</version>
+				<version>1.0</version>
 				<configuration>
 					...
 				</configuration>
@@ -172,7 +174,7 @@ JabSaw is accessible from within unit tests. Add the util artifact to the `pom.x
 	<dependency>
 		<groupId>org.jabsaw</groupId>
 		<artifactId>jabsaw-util</artifactId>
-		<version>1.0-SNAPSHOT</version>
+		<version>1.0</version>
 		<scope>test</scope>
 	</dependency>
 	
@@ -214,7 +216,21 @@ in breaking changes, updates of the major version can.
 
 ### Creating Releases
 During development, the version is always set to the next version with the -SNAPSHOT suffix.
-A release can be perfomed with
+
+To build a release, first the `~/.m2/settings.xml` file has to be set up using the Sonatype Jira credentials:
+
+	<?xml version="1.0" encoding="UTF-8"?>
+	<settings>
+		<servers>
+			<server>
+				<id>ossrh</id>
+				<username>your-jira-id</username>
+				<password>your-jira-pwd</password>
+			</server>
+		</servers>
+	</settings>
+	
+Then a release can be perfomed with
 
 	mvn release:clean release:prepare
 	
@@ -222,7 +238,10 @@ by answering the prompts for versions and tags, followed by
 	
 	mvn release:perform
 
-Finally, update the `settings.xml` file to contain your credentials and put the release 
-to the central repository by
+Finally, put the release to the central repository by
 
+	...
+	cd target/checkout
 	mvn nexus-staging:release
+
+Last but not least, do not forget to bump the versions in the examples in this file.
