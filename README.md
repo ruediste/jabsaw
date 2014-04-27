@@ -3,6 +3,10 @@ JabSaw
 
 Lightweigth compile time module system, aimed at package dependency organization. 
 
+News
+----
+* Released Version 1.1 (2014-4-27): Bugfix release
+
 Motivation
 ----------
 Keeping track of coupling is very helpful in reaching a sound software design. While
