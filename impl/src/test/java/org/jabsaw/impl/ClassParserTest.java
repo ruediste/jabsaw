@@ -110,6 +110,18 @@ public class ClassParserTest {
 
 	}
 
+	private class TestLoadedType {
+
+	}
+
+	private class TestLoadedArrayType {
+
+	}
+
+	private class TestInstanceOfType {
+
+	}
+
 	private @interface TestLocalVariableAnnotation {
 
 	}
@@ -137,6 +149,9 @@ public class ClassParserTest {
 			@TestLocalVariableAnnotation
 			TestLocalVariabe foo = null;
 			ClassParserTest.testStaticClass(null, ClassParserTest.testField);
+			System.out.println(TestLoadedType.class);
+			System.out.println(TestLoadedArrayType[].class);
+			System.out.println(new Object() instanceof TestInstanceOfType);
 			return null;
 		}
 
@@ -159,9 +174,12 @@ public class ClassParserTest {
 				RuntimeException.class, TestAnnotationField.class,
 				TestAnnotationMethod.class,
 				TestAnnotationMethodParameter.class,
-				TestCalledMethodReturn.class, TestCalledMethodParameter.class,
+				TestCalledMethodReturn.class,
+				TestCalledMethodParameter.class,
 				// TestLocalVariableAnnotation.class,
-				TestLocalVariabe.class, TestAccessedField.class);
+				TestLoadedType.class, TestLoadedArrayType.class,
+				TestInstanceOfType.class, TestLocalVariabe.class,
+				TestAccessedField.class);
 	}
 
 	private void assertContainsNames(Set<String> names, Class<?>... cls) {
