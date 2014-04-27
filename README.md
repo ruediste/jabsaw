@@ -221,7 +221,8 @@ in breaking changes, updates of the major version can.
 
 
 ### Creating Releases
-During development, the version is always set to the next version with the -SNAPSHOT suffix.
+During development, the version is always set to the next version with the -SNAPSHOT suffix. Development happens on the `next` branch. The `master` branch
+is used for the current released version.
 
 To build a release, first the `~/.m2/settings.xml` file has to be set up using the Sonatype Jira credentials:
 
