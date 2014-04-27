@@ -10,7 +10,7 @@
 
 	<organization>
 		<name>Ruedi Steinmann</name>
-		<url>https://github.com/ruediste1/jabsaw</url>
+		<url>http://github.com/ruediste1</url>
 	</organization>
 
 	<url>http://www.jabsaw.org</url>
@@ -19,6 +19,7 @@
 		<developer>
 			<name>Ruedi Steinmann</name>
 			<email>ruediste [at] gmail [dot] com</email>
+			<url>http://github.com/ruediste1</url>
 		</developer>
 	</developers>
 
