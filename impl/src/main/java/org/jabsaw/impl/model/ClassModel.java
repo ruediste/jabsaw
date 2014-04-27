@@ -136,8 +136,8 @@ public class ClassModel implements ModelNode {
 	public Set<String> innerClassNames = new HashSet<>();
 
 	ClassModel getToplevelClass() {
-		Set<ClassModel> visited = new HashSet<>();
 		if (toplevelClass == null) {
+			Set<ClassModel> visited = new HashSet<>();
 			toplevelClass = this;
 			while (true) {
 				if (toplevelClass.outerClass != null
