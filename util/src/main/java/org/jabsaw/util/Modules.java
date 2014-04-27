@@ -177,7 +177,7 @@ public class Modules {
 	 * provided error list.
 	 */
 	public static void checkAllClassesInModule(List<String> errors) {
-		Modules.projectModel.checkAllClassesInModule(errors);
+		Modules.getProjectModel().checkAllClassesInModule(errors);
 	}
 
 	/**
@@ -185,7 +185,7 @@ public class Modules {
 	 * modules. All errors are added to the provided error list.
 	 */
 	public static void checkClassAccessibility(List<String> errors) {
-		Modules.projectModel.checkClassAccessibility(errors);
+		Modules.getProjectModel().checkClassAccessibility(errors);
 	}
 
 	/**
@@ -193,6 +193,6 @@ public class Modules {
 	 * errors are added to the provided error list.
 	 */
 	public static void checkDependencyCycles(List<String> errors) {
-		Modules.projectModel.checkDependencyCycles(errors);
+		Modules.getProjectModel().checkDependencyCycles(errors);
 	}
 }
