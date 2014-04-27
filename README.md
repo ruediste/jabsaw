@@ -253,6 +253,6 @@ Finally, put the release to the central repository by
 
 	...
 	cd target/checkout
-	mvn nexus-staging:release
+	mvn nexus-staging:release -P release
 
 Last but not least, do not forget to bump the versions in the examples in this file.
