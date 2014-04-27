@@ -184,12 +184,18 @@ test classpath. This can be configured by adding a `jabsaw.properties` file to t
 root test classpath. When using main, put the file under `src/test/resources/jabsaw.properties`.
 The following properties are supported:
 
-	includeJars = true|false
+	includeJars = true | false
 	  When set to true, jar files on the classpath will be parsed
 	  Default: true
+	  
 	excludePath = ...
 	  When defined, any resource on the classpath containing the 
 	  provided string will not be scanned.
+	  
+	useModuleNames = true | false
+	   If true, modules are typically identified in strings by their name instead 
+	   of the fully qualified name of the representing class. 
+	   Default: false
 	  
 Example file working well with maven:
 
