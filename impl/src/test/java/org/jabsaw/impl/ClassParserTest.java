@@ -136,7 +136,7 @@ public class ClassParserTest {
 
 	@TestAnnotationClass(bar = { @TestNestedAnnotationArray }, foo = @TestNestedAnnotationDirect)
 	private static class TestClass extends TestSuperClass implements
-			TestInterface {
+	TestInterface {
 
 		@TestAnnotationField
 		TestField foo;
@@ -144,7 +144,7 @@ public class ClassParserTest {
 		@TestAnnotationMethod
 		TestMethodReturn method(
 				@TestAnnotationMethodParameter TestMethodParameter p)
-				throws RuntimeException {
+						throws RuntimeException {
 			@SuppressWarnings("unused")
 			@TestLocalVariableAnnotation
 			TestLocalVariabe foo = null;
@@ -216,4 +216,48 @@ public class ClassParserTest {
 
 	}
 
+	public interface AnonymousInnerClassTestInterface {
+
+	}
+
+	public class AnonymousInnerClassTestClass {
+
+		public void foo() {
+			@SuppressWarnings("unused")
+			AnonymousInnerClassTestInterface bar = new AnonymousInnerClassTestInterface() {
+			};
+		}
+	}
+
+	@Test
+	public void anonymousInnerClassTest() throws IOException {
+		ClassParser parser = new ClassParser();
+		parser.parse(new ClassReader(getClass().getResourceAsStream(
+				"ClassParserTest$AnonymousInnerClassTestInterface.class")));
+		parser.parse(new ClassReader(getClass().getResourceAsStream(
+				"ClassParserTest$AnonymousInnerClassTestClass.class")));
+		parser.parse(new ClassReader(getClass().getResourceAsStream(
+				"ClassParserTest$AnonymousInnerClassTestClass$1.class")));
+
+		ProjectModel project = parser.getProject();
+		project.resolveDependencies();
+
+		ClassModel interfaze = project
+				.getClassModel(AnonymousInnerClassTestInterface.class.getName());
+		ClassModel clazz = project
+				.getClassModel(AnonymousInnerClassTestClass.class.getName());
+
+		Assert.assertTrue(interfaze.getUsesClasses().isEmpty());
+		Assert.assertTrue(clazz.getUsesClasses().size() == 2);
+
+		{
+			boolean found = false;
+			for (ClassModel c : clazz.getUsesClasses()) {
+				found |= c.getQualifiedName().equals(
+						AnonymousInnerClassTestInterface.class.getName());
+			}
+			Assert.assertTrue(found);
+		}
+
+	}
 }

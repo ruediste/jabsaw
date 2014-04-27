@@ -142,8 +142,20 @@ public class ClassParser {
 		@Override
 		public void visitInnerClass(String name, String outerName,
 				String innerName, int access) {
-			classModel.innerClassNames.add(Type.getObjectType(name)
-					.getClassName());
+			if (name != null && outerName != null) {
+				if (Type.getObjectType(name).getClassName()
+						.equals(classModel.getQualifiedName())) {
+					classModel.outerClassName = Type.getObjectType(outerName)
+							.getClassName();
+				}
+
+				if (Type.getObjectType(outerName).getClassName()
+						.equals(classModel.getQualifiedName())) {
+					classModel.innerClassNames.add(Type.getObjectType(name)
+							.getClassName());
+				}
+
+			}
 		}
 
 		@Override
@@ -318,7 +330,7 @@ public class ClassParser {
 		@Override
 		public void visitEnum(String name, String desc, String value) {
 			classModel
-			.addUsesClassName(Type.getObjectType(desc).getClassName());
+					.addUsesClassName(Type.getObjectType(desc).getClassName());
 		}
 	}
 
