@@ -6,39 +6,36 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.jabsaw.impl.ClassParser;
+import org.jabsaw.impl.*;
 import org.jabsaw.impl.ClassParser.DirectoryParsingCallback;
-import org.jabsaw.impl.GraphizPrinter;
+import org.jabsaw.impl.ClassParser;
 import org.jabsaw.impl.model.ProjectModel;
-import org.kohsuke.args4j.Argument;
-import org.kohsuke.args4j.CmdLineException;
-import org.kohsuke.args4j.CmdLineParser;
-import org.kohsuke.args4j.Option;
+import org.kohsuke.args4j.*;
 
 public class Main {
 
-	@Option(name = "-cc", usage = "check for dependency cycles. default: true")
+	@Option(name = "-cc", handler = ArgumentBooleanHandler.class, usage = "check for dependency cycles. default: true")
 	private boolean checkDepedencyCycles = true;
 
-	@Option(name = "-cm", usage = "check that all classes are in a module. default: false")
+	@Option(name = "-cm", handler = ArgumentBooleanHandler.class, usage = "check that all classes are in a module. default: false")
 	private boolean checkAllClassesInModule = false;
 
-	@Option(name = "-cb", usage = "check that all classes respect the module boundaries. default: true")
+	@Option(name = "-cb", handler = ArgumentBooleanHandler.class, usage = "check that all classes respect the module boundaries. default: true")
 	private boolean checkClassAccessibility = true;
 
-	@Option(name = "-graphiz", usage = "If true, generate a module graph Graphviz file. Default: false")
+	@Option(name = "-graphiz", handler = ArgumentBooleanHandler.class, usage = "If true, generate a module graph Graphviz file. Default: false")
 	private boolean createModuleGraphvizFile = false;
 
-	@Option(name = "-n", usage = "If true, modules are typically identified in strings by their name instead of the fully qualified name of the representing class. Default: false")
+	@Option(name = "-n", handler = ArgumentBooleanHandler.class, usage = "If true, modules are typically identified in strings by their name instead of the fully qualified name of the representing class. Default: false")
 	private boolean useModuleNames = false;
 
-	@Option(name = "-graphvizClasses", usage = "If true, the generated module graph includes the individual classes. Default: false")
+	@Option(name = "-graphvizClasses", handler = ArgumentBooleanHandler.class, usage = "If true, the generated module graph includes the individual classes. Default: false")
 	private boolean moduleGraphIncludesClasses = false;
 
 	@Option(name = "-graphvizFormat", usage = "Set the output format of the module graph. If set, the dot command will be executed. Implies -graphviz. Examples: ps, png, gif, svg. Default: empty")
 	private String moduleGraphFormat = "";
 
-	@Option(name = "-v", usage = "verbose output. default: false")
+	@Option(name = "-v", handler = ArgumentBooleanHandler.class, usage = "verbose output. default: false")
 	private boolean verbose = false;
 
 	@Argument
@@ -122,9 +119,9 @@ public class Main {
 			try {
 				process = new ProcessBuilder(
 						moduleGraphIncludesClasses ? "sfdp" : "dot", "-T",
-								moduleGraphFormat, "-o", "moduleGraph."
-										+ moduleGraphFormat, "moduleGraph.dot")
-				.inheritIO().start();
+						moduleGraphFormat, "-o", "moduleGraph."
+								+ moduleGraphFormat, "moduleGraph.dot")
+						.inheritIO().start();
 				process.waitFor();
 			} catch (Exception e) {
 				throw new RuntimeException(
@@ -162,7 +159,7 @@ public class Main {
 			// an error message.
 			System.err.println(e.getMessage());
 			System.err
-			.println("java -jar ... org.jabsaw.Main [options...] dirs...");
+					.println("java -jar ... org.jabsaw.Main [options...] dirs...");
 			// print the list of available options
 			parser.printUsage(System.err);
 			System.err.println();
