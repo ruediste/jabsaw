@@ -221,6 +221,11 @@ public class ClassParser {
 			if ("includePackage".equals(name)) {
 				includePackage = (boolean) value;
 			}
+
+			if ("hideFromDependencyGraphOutput".equals(name)) {
+				module.setHideFromDependencyGraphOutput((boolean) value);
+			}
+
 			if ("name".equals(name)) {
 				String s = (String) value;
 				if (s != null && !s.isEmpty()) {
@@ -330,7 +335,7 @@ public class ClassParser {
 		@Override
 		public void visitEnum(String name, String desc, String value) {
 			classModel
-					.addUsesClassName(Type.getObjectType(desc).getClassName());
+			.addUsesClassName(Type.getObjectType(desc).getClassName());
 		}
 	}
 

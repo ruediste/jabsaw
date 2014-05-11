@@ -57,6 +57,12 @@ public class ModuleModel implements ModelNode {
 	final Set<ModuleModel> allModuleDependencies = new HashSet<>();
 
 	/**
+	 * If true, the module will be hidden from outputs of the dependency graph,
+	 * for example when plotting the dependency graph.
+	 */
+	private boolean hideFromDependencyGraphOutput;
+
+	/**
 	 * All classes this module depends upon. Includes all transitive
 	 * dependencies of the classes in this module, even if the dependencies are
 	 * not in a module themselves
@@ -306,5 +312,14 @@ public class ModuleModel implements ModelNode {
 		} else {
 			return qualifiedNameOfRepresentingClass;
 		}
+	}
+
+	public boolean isHideFromDependencyGraphOutput() {
+		return hideFromDependencyGraphOutput;
+	}
+
+	public void setHideFromDependencyGraphOutput(
+			boolean hideFromDependencyGraphOutput) {
+		this.hideFromDependencyGraphOutput = hideFromDependencyGraphOutput;
 	}
 }

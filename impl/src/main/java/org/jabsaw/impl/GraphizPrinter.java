@@ -53,6 +53,10 @@ public class GraphizPrinter {
 		int i = 0;
 		// print nodes
 		for (ModuleModel module : project.getModules().values()) {
+			if (module.isHideFromDependencyGraphOutput()) {
+				continue;
+			}
+
 			if (includeClasses) {
 				out.printf("subgraph cluster%d {\n", i++);
 			}
@@ -62,9 +66,9 @@ public class GraphizPrinter {
 					module.getQualifiedNameOfRepresentingClass(),
 					module.getIdentification(),
 					(module.getDescription() != null && !module
-					.getDescription().isEmpty()) ? module
+							.getDescription().isEmpty()) ? module
 							.getDescription() : "No Description",
-							includeClasses ? ", color=green" : "");
+					includeClasses ? ", color=green" : "");
 
 			if (includeClasses) {
 				for (ClassModel clazz : module.getClasses()) {
@@ -81,14 +85,22 @@ public class GraphizPrinter {
 		// print edges
 
 		for (ModuleModel module : project.getModules().values()) {
-
+			if (module.isHideFromDependencyGraphOutput()) {
+				continue;
+			}
 			for (ModuleModel imported : module.getImportedModules()) {
+				if (imported.isHideFromDependencyGraphOutput()) {
+					continue;
+				}
 				out.printf("\"MODULE$%s\"->\"MODULE$%s\"%s;\n",
 						module.getQualifiedNameOfRepresentingClass(),
 						imported.getQualifiedNameOfRepresentingClass(),
 						includeClasses ? " [color=green]" : "");
 			}
 			for (ModuleModel exported : module.getExportedModules()) {
+				if (exported.isHideFromDependencyGraphOutput()) {
+					continue;
+				}
 				out.printf("\"MODULE$%s\"->\"MODULE$%s\" [color=green];\n",
 						module.getQualifiedNameOfRepresentingClass(),
 						exported.getQualifiedNameOfRepresentingClass());

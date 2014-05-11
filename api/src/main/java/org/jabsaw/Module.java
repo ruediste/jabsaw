@@ -135,4 +135,10 @@ public @interface Module {
 	 * <code> "current package".* </code> include pattern)
 	 */
 	boolean includePackage() default true;
+
+	/**
+	 * If true, the module will be hidden from outputs of the dependency graph,
+	 * for example when plotting the dependency graph.
+	 */
+	boolean hideFromDependencyGraphOutput() default false;
 }
