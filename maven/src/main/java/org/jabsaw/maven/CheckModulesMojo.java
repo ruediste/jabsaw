@@ -86,16 +86,16 @@ public class CheckModulesMojo extends AbstractMojo {
 		parser.parseDirectory(errors, outputDirectory.toPath(),
 				new DirectoryParsingCallback() {
 
-					@Override
-					public void parsingFile(Path file) {
-						getLog().debug("parsing " + file.toString());
-					}
+			@Override
+			public void parsingFile(Path file) {
+				getLog().debug("parsing " + file.toString());
+			}
 
-					@Override
-					public void error(String error) {
-						errors.add(error);
-					}
-				});
+			@Override
+			public void error(String error) {
+				errors.add(error);
+			}
+		});
 
 		project.resolveDependencies();
 
@@ -116,30 +116,35 @@ public class CheckModulesMojo extends AbstractMojo {
 			project.checkClassAccessibility(errors);
 		}
 
-		if (createModuleGraphvizFile || !moduleGraphFormat.isEmpty()) {
-			GraphizPrinter printer = new GraphizPrinter();
-			try {
-				printer.print(project, new File(targetDirectory,
-						"moduleGraph.dot"), moduleGraphIncludesClasses);
-			} catch (IOException e) {
-				throw new RuntimeException(
-						"Error while generating module graph .dot file", e);
+		if (!targetDirectory.exists()) {
+			getLog().info(
+					"Target directory does not exist, skipping module graph creation");
+		} else {
+			if (createModuleGraphvizFile || !moduleGraphFormat.isEmpty()) {
+				GraphizPrinter printer = new GraphizPrinter();
+				try {
+					printer.print(project, new File(targetDirectory,
+							"moduleGraph.dot"), moduleGraphIncludesClasses);
+				} catch (IOException e) {
+					throw new RuntimeException(
+							"Error while generating module graph .dot file", e);
+				}
 			}
-		}
 
-		if (!moduleGraphFormat.isEmpty()) {
-			Process process;
-			try {
-				process = new ProcessBuilder(
-						moduleGraphIncludesClasses ? "sfdp" : "dot", "-T",
-								moduleGraphFormat, "-o", "moduleGraph."
-										+ moduleGraphFormat, "moduleGraph.dot")
-				.inheritIO().directory(targetDirectory).start();
-				process.waitFor();
-			} catch (Exception e) {
-				throw new RuntimeException(
-						"Error while running the dot command to produce a module graph",
-						e);
+			if (!moduleGraphFormat.isEmpty()) {
+				Process process;
+				try {
+					process = new ProcessBuilder(
+							moduleGraphIncludesClasses ? "sfdp" : "dot", "-T",
+							moduleGraphFormat, "-o", "moduleGraph."
+									+ moduleGraphFormat, "moduleGraph.dot")
+							.inheritIO().directory(targetDirectory).start();
+					process.waitFor();
+				} catch (Exception e) {
+					throw new RuntimeException(
+							"Error while running the dot command to produce a module graph",
+							e);
+				}
 			}
 		}
 
