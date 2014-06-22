@@ -5,6 +5,12 @@ Lightweigth compile time module system, aimed at package dependency organization
 
 News
 ----
+* Released Version 1.2 (2014-6-22): Feature release
+    * CLI: Boolean options can be set to false
+    * Maven Plugin: can be used in projects with POM packaing
+    * Graphviz Module Graph: 
+        * Modules can be hidden (hideFromDependencyGraphOutput annotation member)
+        * Graph can be oriented horizontally (CLI flag, Maven Mojo parameter)
 * Released Version 1.1 (2014-4-27): Bugfix release
 
 Motivation
@@ -86,7 +92,7 @@ The api can be found in `jabsaw/api/target/jabsaw-api-<version>.jar`. When using
 		<dependency>
 			<groupId>org.jabsaw</groupId>
 			<artifactId>jabsaw-api</artifactId>
-			<version>1.0</version>
+			<version>1.2</version>
 		</dependency>
 		...
 	</dependencies>
@@ -102,7 +108,7 @@ JabSaw comes with a Maven plugin to check module dependencies. Add
 			<plugin>
 				<groupId>org.jabsaw</groupId>
 				<artifactId>jabsaw-maven-plugin</artifactId>
-				<version>1.0</version>
+				<version>1.2</version>
 				<configuration>
 					...
 				</configuration>
@@ -140,7 +146,7 @@ Currently, the following paramerters are available:
 	checkModuleBoundaries
 	  If true, check that all classes respect module boundaries. 
 	  Default: true
-	  
+	
 	useModuleNames
 	   If true, modules are typically identified in strings by their name instead 
 	   of the fully qualified name of the representing class. 
@@ -149,6 +155,11 @@ Currently, the following paramerters are available:
 	createModuleGraphvizFile
 	  If true, generate a module graph Graphviz file. 
 	  Default: false
+	
+	graphvizLayoutHorizontal
+	  If true, the generated module graph will use a horizontal (Left-Right)
+	  layout instead of a vertical (top-down) layout. Default: false
+	  Required: Yes
 	
 	moduleGraphFormat
 	  Set the output format of the module graph. If set, the dot command will be
@@ -168,7 +179,7 @@ This requires graphviz to be installed (the `dot` program). Under Ubuntu simply 
 ### Checking with the Command Line Interface
 If you are not using Maven, you can use the command line interface. All dependencies are packed within the `jabsaw/cli/target/jabsaw-cli-<version>.jar` file.
 
-	java -jar jabsaw-cli-1.0-SNAPSHOT.jar .
+	java -jar jabsaw-cli-1.2.jar .
 
 When no parameters are given, a help screen will be shown.
 
@@ -178,7 +189,7 @@ JabSaw is accessible from within unit tests. Add the util artifact to the `pom.x
 	<dependency>
 		<groupId>org.jabsaw</groupId>
 		<artifactId>jabsaw-util</artifactId>
-		<version>1.0</version>
+		<version>1.2</version>
 		<scope>test</scope>
 	</dependency>
 	
