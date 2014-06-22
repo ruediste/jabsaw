@@ -6,11 +6,14 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.jabsaw.impl.*;
-import org.jabsaw.impl.ClassParser.DirectoryParsingCallback;
 import org.jabsaw.impl.ClassParser;
+import org.jabsaw.impl.ClassParser.DirectoryParsingCallback;
+import org.jabsaw.impl.GraphizPrinter;
 import org.jabsaw.impl.model.ProjectModel;
-import org.kohsuke.args4j.*;
+import org.kohsuke.args4j.Argument;
+import org.kohsuke.args4j.CmdLineException;
+import org.kohsuke.args4j.CmdLineParser;
+import org.kohsuke.args4j.Option;
 
 public class Main {
 
@@ -25,6 +28,9 @@ public class Main {
 
 	@Option(name = "-graphiz", handler = ArgumentBooleanHandler.class, usage = "If true, generate a module graph Graphviz file. Default: false")
 	private boolean createModuleGraphvizFile = false;
+
+	@Option(name = "-graphvizHorizontal", handler = ArgumentBooleanHandler.class, usage = "If true, the generated graphviz file will use horizontal (left to right) layout. Default: false")
+	private boolean graphvizLayoutHorizontal = false;
 
 	@Option(name = "-n", handler = ArgumentBooleanHandler.class, usage = "If true, modules are typically identified in strings by their name instead of the fully qualified name of the representing class. Default: false")
 	private boolean useModuleNames = false;
@@ -105,6 +111,7 @@ public class Main {
 
 		if (createModuleGraphvizFile) {
 			GraphizPrinter printer = new GraphizPrinter();
+			printer.setHorizontalLayout(graphvizLayoutHorizontal);
 			try {
 				printer.print(project, new File("moduleGraph.dot"),
 						moduleGraphIncludesClasses);
@@ -119,9 +126,9 @@ public class Main {
 			try {
 				process = new ProcessBuilder(
 						moduleGraphIncludesClasses ? "sfdp" : "dot", "-T",
-						moduleGraphFormat, "-o", "moduleGraph."
-								+ moduleGraphFormat, "moduleGraph.dot")
-						.inheritIO().start();
+								moduleGraphFormat, "-o", "moduleGraph."
+										+ moduleGraphFormat, "moduleGraph.dot")
+				.inheritIO().start();
 				process.waitFor();
 			} catch (Exception e) {
 				throw new RuntimeException(
@@ -159,7 +166,7 @@ public class Main {
 			// an error message.
 			System.err.println(e.getMessage());
 			System.err
-					.println("java -jar ... org.jabsaw.Main [options...] dirs...");
+			.println("java -jar ... org.jabsaw.Main [options...] dirs...");
 			// print the list of available options
 			parser.printUsage(System.err);
 			System.err.println();

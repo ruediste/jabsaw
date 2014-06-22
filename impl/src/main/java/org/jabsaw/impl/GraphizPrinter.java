@@ -15,6 +15,8 @@ import org.jabsaw.impl.model.ProjectModel;
  */
 public class GraphizPrinter {
 
+	private boolean layoutHorizontal;
+
 	/**
 	 * Print the given {@link ProjectModel} as Graphviz .dot file to the given
 	 * file
@@ -48,6 +50,10 @@ public class GraphizPrinter {
 		} else {
 			out.println("overlap=false;");
 			out.println("spline=true;");
+		}
+
+		if (layoutHorizontal) {
+			out.println("rankdir=\"LR\";");
 		}
 
 		int i = 0;
@@ -122,5 +128,9 @@ public class GraphizPrinter {
 
 		out.println("}");
 		out.flush();
+	}
+
+	public void setHorizontalLayout(boolean layoutHorizontal) {
+		this.layoutHorizontal = layoutHorizontal;
 	}
 }

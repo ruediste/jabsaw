@@ -60,6 +60,13 @@ public class CheckModulesMojo extends AbstractMojo {
 	private boolean createModuleGraphvizFile;
 
 	/**
+	 * If true, the generated module graph will use a horizontal (Left-Right)
+	 * layout instead of a vertical (top-down) layout. Default: false
+	 */
+	@Parameter(defaultValue = "false", required = true)
+	private boolean graphvizLayoutHorizontal;
+
+	/**
 	 * If true, the generated module graph includes the individual classes.
 	 * Default: false
 	 */
@@ -86,16 +93,16 @@ public class CheckModulesMojo extends AbstractMojo {
 		parser.parseDirectory(errors, outputDirectory.toPath(),
 				new DirectoryParsingCallback() {
 
-			@Override
-			public void parsingFile(Path file) {
-				getLog().debug("parsing " + file.toString());
-			}
+					@Override
+					public void parsingFile(Path file) {
+						getLog().debug("parsing " + file.toString());
+					}
 
-			@Override
-			public void error(String error) {
-				errors.add(error);
-			}
-		});
+					@Override
+					public void error(String error) {
+						errors.add(error);
+					}
+				});
 
 		project.resolveDependencies();
 
@@ -122,6 +129,7 @@ public class CheckModulesMojo extends AbstractMojo {
 		} else {
 			if (createModuleGraphvizFile || !moduleGraphFormat.isEmpty()) {
 				GraphizPrinter printer = new GraphizPrinter();
+				printer.setHorizontalLayout(graphvizLayoutHorizontal);
 				try {
 					printer.print(project, new File(targetDirectory,
 							"moduleGraph.dot"), moduleGraphIncludesClasses);
@@ -136,9 +144,9 @@ public class CheckModulesMojo extends AbstractMojo {
 				try {
 					process = new ProcessBuilder(
 							moduleGraphIncludesClasses ? "sfdp" : "dot", "-T",
-							moduleGraphFormat, "-o", "moduleGraph."
-									+ moduleGraphFormat, "moduleGraph.dot")
-							.inheritIO().directory(targetDirectory).start();
+									moduleGraphFormat, "-o", "moduleGraph."
+											+ moduleGraphFormat, "moduleGraph.dot")
+					.inheritIO().directory(targetDirectory).start();
 					process.waitFor();
 				} catch (Exception e) {
 					throw new RuntimeException(
