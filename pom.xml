@@ -3,7 +3,7 @@
 	<groupId>org.jabsaw</groupId>
 	<artifactId>jabsaw</artifactId>
 	<packaging>pom</packaging>
-	<version>1.2</version>
+	<version>1.3-SNAPSHOT</version>
 	<name>JabSaw Module System</name>
 
 	<description>Lightweigth compile time module system, aimed at package dependency organization.</description>
@@ -27,7 +27,7 @@
 		<connection>scm:git:git@github.com:ruediste1/jabsaw.git</connection>
 		<developerConnection>scm:git:git@github.com:ruediste1/jabsaw.git</developerConnection>
 		<url>git@github.com:ruediste1/jabsaw.git</url>
-	  <tag>jabsaw-1.2</tag>
+	  <tag>HEAD</tag>
   </scm>
 
 	<issueManagement>
