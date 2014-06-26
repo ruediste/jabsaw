@@ -2,14 +2,10 @@ package org.jabsaw.util;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 import org.jabsaw.impl.ClassParser;
-import org.jabsaw.impl.model.ClassModel;
-import org.jabsaw.impl.model.ModuleModel;
-import org.jabsaw.impl.model.ProjectModel;
+import org.jabsaw.impl.model.*;
 import org.objectweb.asm.ClassReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,7 +86,7 @@ public class Modules {
 							.filter(ClassInfo.class).toList();
 					ClassParser parser = new ClassParser();
 					parser.getProject()
-							.setUseModuleNames(config.useModuleNames);
+					.setUseModuleNames(config.useModuleNames);
 					for (ClassInfo info : classes) {
 						if (!config.includeJars) {
 							if ("jar".equals(info.url().getProtocol())) {
@@ -99,7 +95,7 @@ public class Modules {
 						}
 						if (config.excludePath != null
 								&& info.url().getPath()
-										.contains(config.excludePath)) {
+								.contains(config.excludePath)) {
 							continue;
 						}
 						Modules.logger.trace("parsing" + info.url());
@@ -135,20 +131,23 @@ public class Modules {
 	 * Return all classes the given module depends on, including transitive
 	 * dependencies, even if they are not part of a module.
 	 */
-	public static Class<?>[] getAllRequiredClasses(Class<?> module) {
+	public static Class<?>[] getAllRequiredClasses(Class<?>... modules) {
 		HashSet<Class<?>> result = new HashSet<>();
 		ClassLoader classLoader = Modules.class.getClassLoader();
 
 		// follow dependencies by classes
-		for (ClassModel info : Modules.getModuleModel(module)
-				.getAllClassDependencies()) {
-			try {
-				result.add(classLoader.loadClass(info.getQualifiedName()));
-			} catch (ClassNotFoundException e) {
-				Modules.logger.error(
-						"Error loading class " + info.getQualifiedName(), e);
-			}
+		for (Class<?> module : modules) {
+			for (ClassModel info : Modules.getModuleModel(module)
+					.getAllClassDependencies()) {
+				try {
+					result.add(classLoader.loadClass(info.getQualifiedName()));
+				} catch (ClassNotFoundException e) {
+					Modules.logger
+							.error("Error loading class "
+									+ info.getQualifiedName(), e);
+				}
 
+			}
 		}
 
 		return result.toArray(new Class<?>[] {});
