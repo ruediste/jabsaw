@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Set;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -14,6 +15,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.jabsaw.impl.ClassParser;
 import org.jabsaw.impl.ClassParser.DirectoryParsingCallback;
 import org.jabsaw.impl.GraphizPrinter;
+import org.jabsaw.impl.model.ModuleModel;
 import org.jabsaw.impl.model.ProjectModel;
 
 /**
@@ -119,8 +121,30 @@ public class CheckModulesMojo extends AbstractMojo {
 		}
 
 		if (checkModuleBoundaries) {
+			ArrayList<String> boundaryErrors = new ArrayList<>();
 			getLog().info("Checking class dependencies ...");
-			project.checkClassAccessibility(errors);
+			project.checkClassAccessibility(boundaryErrors);
+			
+			// if there were errors, print suggested imports for all modules
+			if (!boundaryErrors.isEmpty()) {
+				for (ModuleModel module : project.getModules().values()) {
+					Set<ModuleModel> required = module
+							.getRequiredImportedModules();
+					if (!module.getImportedModules().containsAll(required)) {
+						// there are missing imports
+						StringBuilder sb = new StringBuilder();
+						for (ModuleModel m : required) {
+							if (sb.length() != 0)
+								sb.append(", ");
+							sb.append(m.getQualifiedNameOfRepresentingClass());
+							sb.append(".class");
+						}
+						boundaryErrors.add("Suggested imports for "
+								+ module.getName() + ": imported={" + sb + "}");
+					}
+				}
+			}
+			errors.addAll(boundaryErrors);
 		}
 
 		if (!targetDirectory.exists()) {

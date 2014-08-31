@@ -1,7 +1,9 @@
 package org.jabsaw.impl.model;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.jabsaw.impl.pattern.ClassPattern;
@@ -259,6 +261,36 @@ public class ModuleModel implements ModelNode {
 		Set<ModuleModel> set = new HashSet<>();
 		set.addAll(exportedModules);
 		set.addAll(importedModules);
+		return set;
+	}
+
+	/**
+	 * Return all modules which need to be imported in order to satisfy all
+	 * requirements.
+	 */
+	public Set<ModuleModel> getRequiredImportedModules() {
+		Set<ModuleModel> set = new HashSet<>();
+
+		// collect all referenced modules
+		for (ClassModel cls : classes) {
+			for (ClassModel used : cls.getUsesClasses())
+				set.add(used.getModule());
+		}
+		set.remove(this);
+		
+		// remove modules accessible through exports
+		for (ModuleModel m: exportedModules){
+			set.removeAll(m.allExportedModules);
+		}
+		
+		// remove modules accessible through exports of imports
+		for (ModuleModel m: new ArrayList<ModuleModel>(set)){
+			HashSet<ModuleModel> tmp = new HashSet<ModuleModel>(m.allExportedModules);
+			tmp.remove(m);
+			set.removeAll(tmp);
+		}
+
+		set.removeAll(exportedModules);
 		return set;
 	}
 
